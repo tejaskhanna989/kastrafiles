@@ -83,17 +83,31 @@ set(CPACK_DEBIAN_PACKAGE_PRIORITY     "optional")
 set(CPACK_DEBIAN_FILE_NAME            DEB-DEFAULT)
 # Auto-compute shared-library deps; the extra Depends cover QML modules that
 # shlibdeps cannot see (they are dlopened from import paths at runtime).
-set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS    ON)
+# NOTE: shlibdeps cannot derive package names for the non-Debian Qt libs the CI
+# builds against (aqt Qt), and it silently contributes nothing for them — so we
+# enumerate the complete runtime dependency set explicitly for a dependable install.
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS    OFF)
 set(CPACK_DEBIAN_PACKAGE_DEPENDS
-    "libqt6sql6-sqlite, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-dialogs, qml6-module-qtquick-window, qml6-module-qtquick-templates, qml6-module-qtqml-workerscript, qml6-module-qt-labs-platform, qml6-module-qt5compat-graphicaleffects")
+    "libc6, libstdc++6, libgcc-s1, \
+libqt6core6, libqt6gui6, libqt6network6, libqt6dbus6, libqt6concurrent6, \
+libqt6sql6, libqt6sql6-sqlite, libqt6svg6, libqt6opengl6, libqt6openglwidgets6, \
+libqt6qml6, libqt6quick6, libqt6quickwidgets6, libqt6quickcontrols2-6, libqt6quicktemplates2-6, \
+qt6-wayland, libglib2.0-0, libargon2-1, libssl3, libgl1, libegl1, \
+libxkbcommon0, libwayland-client0, xdg-utils, gvfs, \
+qml6-module-qtqml, qml6-module-qtqml-workerscript, \
+qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, \
+qml6-module-qtquick-dialogs, qml6-module-qtquick-window, qml6-module-qtquick-templates, \
+qml6-module-qt-labs-platform, qml6-module-qt5compat-graphicaleffects")
 
 # Fedora / RHEL / openSUSE (.rpm)
 set(CPACK_RPM_PACKAGE_LICENSE         "GPL-3.0-or-later")
 set(CPACK_RPM_PACKAGE_GROUP           "Applications/System")
 set(CPACK_RPM_FILE_NAME               RPM-DEFAULT)
+# rpm's ELF-based autoreq resolves sonames regardless of which Qt built the
+# binary, so it is reliable here (unlike dpkg-shlibdeps above).
 set(CPACK_RPM_PACKAGE_AUTOREQPROV     ON)
 set(CPACK_RPM_PACKAGE_REQUIRES
-    "qt6-qtbase, qt6-qtdeclarative, qt6-qtsvg, libargon2, openssl")
+    "qt6-qtbase, qt6-qtdeclarative, qt6-qtsvg, qt6-qtwayland, libargon2, openssl, gvfs")
 
 set(CPACK_GENERATOR "DEB;RPM")
 include(CPack)

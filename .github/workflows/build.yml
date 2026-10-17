@@ -306,8 +306,10 @@ jobs:
             libxkbcommon \
             kwindowsystem \
             desktop-file-utils \
-            shared-mime-info \
-            bsdtar
+            shared-mime-info
+      # bsdtar is provided by libarchive, a pacman hard dependency that is
+      # always present — it is intentionally not listed above (naming it as a
+      # target fails with "target not found").
 
       - name: Build
         run: |
