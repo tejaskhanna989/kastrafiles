@@ -424,6 +424,25 @@ jobs:
           fi
           test -s release-notes.md
 
+      # softprops/action-gh-release updates a release but never removes
+      # pre-existing assets, so stale files (e.g. from an older artifact set)
+      # would linger forever. Purge all existing assets first so the release
+      # always mirrors exactly this build's installers.
+      - name: Remove stale release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'continuous' }}
+        run: |
+          set -e
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            for a in $(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name'); do
+              echo "deleting stale asset: $a"
+              gh release delete-asset "$TAG" "$a" --repo "$GITHUB_REPOSITORY" -y || true
+            done
+          else
+            echo "release $TAG does not exist yet; nothing to purge"
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
