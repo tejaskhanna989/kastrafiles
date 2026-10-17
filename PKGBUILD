@@ -1,11 +1,11 @@
 # Maintainer: Your Name <your@email.com>
-pkgname=bubble-git
+pkgname=kastrafiles-git
 pkgver=r198.g53be041
 pkgrel=1
-pkgdesc="A lightweight Qt6/QML file manager for Hyprland"
+pkgdesc="A fast, modern Wayland file manager with Miller columns and a built-in secure vault"
 arch=('x86_64' 'aarch64')
-url="https://github.com/TattvaOrg/Bubble"
-license=('MIT')
+url="https://github.com/tejaskhanna989/Kastrafiles"
+license=('GPL-3.0-or-later')
 depends=(
     'glib2'
     'gvfs'
@@ -38,10 +38,10 @@ optdepends=(
     'perl-image-exiftool: EXIF metadata for images (via exiftool)'
     'udisks2: mount/unmount devices from sidebar'
 )
-provides=('bubble')
-conflicts=('bubble')
+provides=('kastrafiles')
+conflicts=('kastrafiles')
 source=(
-    "${pkgname}::git+https://github.com/TattvaOrg/Bubble.git"
+    "${pkgname}::git+https://github.com/tejaskhanna989/Kastrafiles.git"
     "quill-icons::git+https://github.com/soyeb-jim285/quill-icons.git"
     "quill::git+https://github.com/soyeb-jim285/quill.git"
 )
@@ -65,36 +65,36 @@ build() {
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DBUILD_TESTS=OFF \
-        -DBUBBLE_DATA_DIR=/usr/share/bubble
+        -DKASTRAFILES_DATA_DIR=/usr/share/kastrafiles
     cmake --build build --parallel
 }
 
 package() {
     # Install the compiled binary
-    install -Dm755 "build/src/bubble" "${pkgdir}/usr/bin/bubble"
+    install -Dm755 "build/src/kastrafiles" "${pkgdir}/usr/bin/kastrafiles"
 
-    # Install themes — loaded via applicationDirPath()/../themes → /usr/share/bubble/themes
-    install -dm755 "${pkgdir}/usr/share/bubble/themes"
+    # Install themes — loaded via applicationDirPath()/../themes → /usr/share/kastrafiles/themes
+    install -dm755 "${pkgdir}/usr/share/kastrafiles/themes"
     install -Dm644 "${pkgname}/themes/"*.toml \
-        -t "${pkgdir}/usr/share/bubble/themes/"
+        -t "${pkgdir}/usr/share/kastrafiles/themes/"
 
-    # Install QML module metadata (needed for loadFromModule to find Bubble)
-    install -Dm644 "build/src/Bubble/qmldir" \
-        "${pkgdir}/usr/share/bubble/Bubble/qmldir"
-    install -Dm644 "build/src/Bubble/bubble.qmltypes" \
-        "${pkgdir}/usr/share/bubble/Bubble/bubble.qmltypes" 2>/dev/null || true
+    # Install QML module metadata (needed for loadFromModule to find Kastrafiles)
+    install -Dm644 "build/src/Kastrafiles/qmldir" \
+        "${pkgdir}/usr/share/kastrafiles/Kastrafiles/qmldir"
+    install -Dm644 "build/src/Kastrafiles/kastrafiles.qmltypes" \
+        "${pkgdir}/usr/share/kastrafiles/Kastrafiles/kastrafiles.qmltypes" 2>/dev/null || true
 
     # Install QML sources for Quill module
-    install -dm755 "${pkgdir}/usr/share/bubble/src"
-    cp -r "${pkgname}/src/qml" "${pkgdir}/usr/share/bubble/src/qml"
+    install -dm755 "${pkgdir}/usr/share/kastrafiles/src"
+    cp -r "${pkgname}/src/qml" "${pkgdir}/usr/share/kastrafiles/src/qml"
 
     # Install desktop entry, icon and AppStream metainfo
-    install -Dm644 "${pkgname}/dist/io.github.tattvaorg.Bubble.desktop" \
-        "${pkgdir}/usr/share/applications/io.github.tattvaorg.Bubble.desktop"
-    install -Dm644 "${pkgname}/dist/io.github.tattvaorg.Bubble.svg" \
-        "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg"
-    install -Dm644 "${pkgname}/dist/io.github.tattvaorg.Bubble.metainfo.xml" \
-        "${pkgdir}/usr/share/metainfo/io.github.tattvaorg.Bubble.metainfo.xml"
+    install -Dm644 "${pkgname}/dist/io.github.tejaskhanna989.Kastrafiles.desktop" \
+        "${pkgdir}/usr/share/applications/io.github.tejaskhanna989.Kastrafiles.desktop"
+    install -Dm644 "${pkgname}/dist/io.github.tejaskhanna989.Kastrafiles.svg" \
+        "${pkgdir}/usr/share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg"
+    install -Dm644 "${pkgname}/dist/io.github.tejaskhanna989.Kastrafiles.metainfo.xml" \
+        "${pkgdir}/usr/share/metainfo/io.github.tejaskhanna989.Kastrafiles.metainfo.xml"
 
     # Install license
     install -Dm644 "${pkgname}/LICENSE" \

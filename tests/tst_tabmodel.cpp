@@ -482,7 +482,7 @@ private slots:
 
         QJsonArray tabs;
         QJsonObject tab;
-        tab["path"] = "/definitely/missing/path/for/bubble";
+        tab["path"] = "/definitely/missing/path/for/kastrafiles";
         tab["viewMode"] = "grid";
         tab["splitViewEnabled"] = false;
         tab["secondaryPath"] = "/another/missing/path";

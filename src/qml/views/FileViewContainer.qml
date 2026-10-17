@@ -1,5 +1,5 @@
 import QtQuick
-import Bubble
+import Kastrafiles
 
 Item {
     id: root

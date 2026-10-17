@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
-import Bubble
+import Kastrafiles
 import Quill as Q
 
 Q.Dialog {

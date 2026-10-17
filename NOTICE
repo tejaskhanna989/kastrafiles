@@ -1,0 +1,24 @@
+Kastrafiles
+Copyright (C) 2026 Kastrafiles contributors
+
+This product is licensed under the GNU General Public License, version 3
+or (at your option) any later version. See the LICENSE file for the full
+license text.
+
+Provenance and attribution
+--------------------------
+Kastrafiles is a derived work of "Bubble", an Qt6/QML Wayland file manager
+originally created by Soyeb Pervez Jim and released under the Apache
+License, Version 2.0. Bubble's many contributors are credited in the
+project's git history.
+
+The Apache License, Version 2.0, expressly permits distributing derivative
+works under the terms of the GNU General Public License v3 (Apache-2.0 is
+one-way compatible with GPLv3). Kastrafiles is therefore distributed under
+GPLv3, while retaining the original authors' copyright and honoring the
+Apache-2.0 attribution requirements. The complete, unmodified Apache
+License, Version 2.0 text that governed the original Bubble contributions
+is preserved alongside this file in LICENSES/Apache-2.0.txt.
+
+In keeping with the spirit of both licenses, we gratefully acknowledge the
+work of Soyeb Pervez Jim and all upstream Bubble contributors.

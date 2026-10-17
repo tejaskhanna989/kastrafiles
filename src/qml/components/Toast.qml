@@ -1,5 +1,5 @@
 import QtQuick
-import Bubble
+import Kastrafiles
 
 // Toast notification container – anchored bottom-right of its parent.
 // Usage: toast.show("message", "info"|"error"|"success")

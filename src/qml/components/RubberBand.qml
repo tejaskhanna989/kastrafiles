@@ -1,5 +1,5 @@
 import QtQuick
-import Bubble
+import Kastrafiles
 
 // Semi-transparent rubber-band selection rectangle.
 // Usage:

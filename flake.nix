@@ -1,5 +1,5 @@
 {
-  description = "Bubble - a lightweight Qt6/QML file manager for Hyprland";
+  description = "Kastrafiles - a lightweight Qt6/QML file manager for Hyprland";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -8,7 +8,7 @@
     # update` (src/qml/icons, src/qml/Quill). Plain flake sources don't fetch
     # submodules, so they're pinned here instead and copied into place in
     # postPatch. Pinned to an exact commit rather than a branch: the commits
-    # bubble's .gitmodules reference aren't always reachable from quill(-icons)'s
+    # kastrafiles's .gitmodules reference aren't always reachable from quill(-icons)'s
     # default branch, so tracking the branch can silently resolve to an older
     # commit. Keep these revs in sync with `git ls-tree main src/qml/Quill
     # src/qml/icons` whenever the submodules are bumped.
@@ -42,10 +42,10 @@
       pkgsFor = system: import nixpkgs { inherit system; };
 
       # Single source of truth for the version lives in CMakeLists.txt
-      # (`project(bubble VERSION x.y.z ...)`) so it never has to be bumped
+      # (`project(kastrafiles VERSION x.y.z ...)`) so it never has to be bumped
       # in two places.
       version = builtins.head (
-        builtins.match ".*project\\(bubble VERSION ([0-9]+\\.[0-9]+\\.[0-9]+).*" (
+        builtins.match ".*project\\(kastrafiles VERSION ([0-9]+\\.[0-9]+\\.[0-9]+).*" (
           builtins.readFile ./CMakeLists.txt
         )
       );
@@ -78,10 +78,10 @@
               $out/lib/libgvfscommon.so $out/lib/gio/modules/libgvfsdbus.so
           '';
 
-      mkBubble =
+      mkKastrafiles =
         pkgs:
         pkgs.stdenv.mkDerivation {
-          pname = "bubble";
+          pname = "kastrafiles";
           inherit version;
 
           src = self;
@@ -112,7 +112,7 @@
 
           cmakeFlags = [
             "-DBUILD_TESTS=OFF"
-            "-DBUBBLE_DATA_DIR=${placeholder "out"}/share/bubble"
+            "-DKASTRAFILES_DATA_DIR=${placeholder "out"}/share/kastrafiles"
           ];
 
           qtWrapperArgs = [
@@ -164,7 +164,7 @@
 
             # gvfs ships the client-side GIO module (libgvfsdbus.so). Without
             # it GIO cannot speak the gvfs protocol at all, so sftp:// smb://
-            # and mtp:// transfers fail even when gvfsd is running — bubble
+            # and mtp:// transfers fail even when gvfsd is running — kastrafiles
             # copies to those URIs in-process via g_file_copy(). NixOS with
             # services.gvfs.enable already exports this, but a plain `nix run`
             # on a non-NixOS host cannot borrow the host module: it is built
@@ -177,28 +177,28 @@
 
           meta = with pkgs.lib; {
             description = "A lightweight Qt6/QML file manager for Hyprland";
-            homepage = "https://github.com/soyeb-jim285/bubble";
+            homepage = "https://github.com/soyeb-jim285/kastrafiles";
             license = licenses.mit;
-            mainProgram = "bubble";
+            mainProgram = "kastrafiles";
             platforms = systems;
           };
         };
     in
     {
       packages = forEachSystem (system: {
-        default = self.packages.${system}.bubble;
-        bubble = mkBubble (pkgsFor system);
+        default = self.packages.${system}.kastrafiles;
+        kastrafiles = mkKastrafiles (pkgsFor system);
       });
 
       apps = forEachSystem (system: {
         default = {
           type = "app";
-          program = "${self.packages.${system}.bubble}/bin/bubble";
+          program = "${self.packages.${system}.kastrafiles}/bin/kastrafiles";
           meta.description = "A lightweight Qt6/QML file manager for Hyprland";
         };
-        bubble = {
+        kastrafiles = {
           type = "app";
-          program = "${self.packages.${system}.bubble}/bin/bubble";
+          program = "${self.packages.${system}.kastrafiles}/bin/kastrafiles";
           meta.description = "A lightweight Qt6/QML file manager for Hyprland";
         };
       });
@@ -210,7 +210,7 @@
         in
         {
           default = pkgs.mkShell {
-            inputsFrom = [ self.packages.${system}.bubble ];
+            inputsFrom = [ self.packages.${system}.kastrafiles ];
           };
         }
       );

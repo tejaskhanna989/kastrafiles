@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Remove
+Type = Package
+Target = kastrafiles
+Target = kastrafiles-git
+
+[Action]
+Description = Securely shredding locked vault files before Kastrafiles removal...
+When = PreTransaction
+Exec = /usr/bin/kastrafiles-vault-destroy --all-users

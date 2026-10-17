@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Bubble Installation Script
+# Kastrafiles Installation Script
 # ==============================================================================
 # A lightweight Qt6/QML file manager for Wayland.
 #
 # Usage:
 #   ./install.sh             # Install for current user to ~/.local (default, no root needed)
 #   ./install.sh --system    # Install system-wide to /usr/local (requires sudo)
-#   ./install.sh --prefix /opt/bubble  # Install to a custom directory
+#   ./install.sh --prefix /opt/kastrafiles  # Install to a custom directory
 #   ./install.sh --uninstall # Remove an existing installation
 # ==============================================================================
 
@@ -24,9 +24,9 @@ cd "$SCRIPT_DIR"
 
 ensure_source_tree() {
     if [[ ! -f "$SCRIPT_DIR/CMakeLists.txt" || ! -d "$SCRIPT_DIR/src" ]]; then
-        TMP_CLONE_DIR="$(mktemp -d /tmp/bubble-install-XXXXXX)"
-        echo "==> Fetching Bubble source repository (${BUBBLE_REPO}) to $TMP_CLONE_DIR..."
-        git clone --depth 1 --recursive "https://github.com/${BUBBLE_REPO}.git" "$TMP_CLONE_DIR"
+        TMP_CLONE_DIR="$(mktemp -d /tmp/kastrafiles-install-XXXXXX)"
+        echo "==> Fetching Kastrafiles source repository (${KASTRAFILES_REPO}) to $TMP_CLONE_DIR..."
+        git clone --depth 1 --recursive "https://github.com/${KASTRAFILES_REPO}.git" "$TMP_CLONE_DIR"
         SCRIPT_DIR="$TMP_CLONE_DIR"
         CLEANUP_TMP=1
         cd "$SCRIPT_DIR"
@@ -43,12 +43,12 @@ AUTO_YES=0
 UNINSTALL=0
 FORCE_REBUILD=0
 INSTALL_METHOD=""
-BUBBLE_REPO="${BUBBLE_REPO:-TattvaOrg/Bubble}"
+KASTRAFILES_REPO="${KASTRAFILES_REPO:-tejaskhanna989/Kastrafiles}"
 TARGET_TAG=""
 
 print_usage() {
     cat <<USAGE
-Bubble Installer
+Kastrafiles Installer
 
 Usage:
   ./install.sh [method] [options]
@@ -58,7 +58,7 @@ Installation Methods:
   2, --source, --build     Build and install from source using CMake
 
 Options:
-  --repo <owner/repo> GitHub repository to download from (default: TattvaOrg/Bubble)
+  --repo <owner/repo> GitHub repository to download from (default: tejaskhanna989/Kastrafiles)
   --tag <tag>         Specific release tag to install (e.g. continuous, v0.6.1)
   --user              Install for current user only (~/.local) [default]
   --system            Install system-wide (/usr/local, requires sudo)
@@ -68,7 +68,7 @@ Options:
   --rebuild           Force clean build before installing
   --no-deps           Skip dependency detection and package installation
   -y, --yes           Automatically install missing dependencies without prompting
-  --uninstall         Uninstall Bubble from target prefix
+  --uninstall         Uninstall Kastrafiles from target prefix
   -h, --help          Show this help message
 
 Examples:
@@ -97,7 +97,7 @@ while [[ $# -gt 0 ]]; do
                 echo "Error: --repo requires an owner/repo argument." >&2
                 exit 1
             fi
-            BUBBLE_REPO="$2"
+            KASTRAFILES_REPO="$2"
             shift 2
             ;;
         --tag)
@@ -186,15 +186,15 @@ if [[ $UNINSTALL -eq 1 ]]; then
         exec bash "$SCRIPT_DIR/uninstall.sh" "${UNINSTALL_ARGS[@]}"
     fi
 
-    echo "==> Uninstalling Bubble from prefix: $PREFIX"
+    echo "==> Uninstalling Kastrafiles from prefix: $PREFIX"
 
-    # Terminate running Bubble instances safely and completely
-    kill_bubble_safely() {
+    # Terminate running Kastrafiles instances safely and completely
+    kill_kastrafiles_safely() {
         local my_pid="$$"
         local parent_pid="$PPID"
         local pids_to_kill=()
 
-        local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bubble"
+        local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/kastrafiles"
         if command -v fuser >/dev/null 2>&1 && [[ -d "$config_dir" ]]; then
             for cfg_item in "$config_dir" "$config_dir"/*; do
                 [[ -e "$cfg_item" ]] || continue
@@ -222,28 +222,28 @@ if [[ $UNINSTALL -eq 1 ]]; then
             [[ -L "/proc/$pid/exe" ]] && exe="$(readlink -f "/proc/$pid/exe" 2>/dev/null || true)"
 
             if [[ "$comm" =~ ^(bash|sh|zsh|sudo|curl|wget|python|python3|node)$ ]]; then
-                if [[ "$exe" != */bin/bubble && "$exe" != */.mount_Bubble* && "$exe" != */.mount_bubble* ]]; then
+                if [[ "$exe" != */bin/kastrafiles && "$exe" != */.mount_Kastrafiles* && "$exe" != */.mount_kastrafiles* ]]; then
                     continue
                 fi
             fi
 
-            local is_bubble=0
-            if [[ "$comm" == "bubble" || "$comm" == "bubble-vault-helper" || "$comm" == "bubble-vault-destroy" || "$comm" == "hyprfm" ]]; then
-                is_bubble=1
-            elif [[ "$exe" == */bin/bubble || "$exe" == */build/*/bubble || "$exe" == */.mount_Bubble* || "$exe" == */.mount_bubble* || "$exe" == *Bubble*.AppImage* ]]; then
-                is_bubble=1
-            elif [[ "$comm" == "AppRun"* && ("$exe" == */.mount_* || "$cmdline" == *bubble* || "$cmdline" == *Bubble*) ]]; then
-                is_bubble=1
+            local is_kastrafiles=0
+            if [[ "$comm" == "kastrafiles" || "$comm" == "kastrafiles-vault-helper" || "$comm" == "kastrafiles-vault-destroy" || "$comm" == "hyprfm" ]]; then
+                is_kastrafiles=1
+            elif [[ "$exe" == */bin/kastrafiles || "$exe" == */build/*/kastrafiles || "$exe" == */.mount_Kastrafiles* || "$exe" == */.mount_kastrafiles* || "$exe" == *Kastrafiles*.AppImage* ]]; then
+                is_kastrafiles=1
+            elif [[ "$comm" == "AppRun"* && ("$exe" == */.mount_* || "$cmdline" == *kastrafiles* || "$cmdline" == *Kastrafiles*) ]]; then
+                is_kastrafiles=1
             fi
 
-            if [[ $is_bubble -eq 1 ]]; then
+            if [[ $is_kastrafiles -eq 1 ]]; then
                 pids_to_kill+=("$pid")
             fi
         done
 
         if [[ ${#pids_to_kill[@]} -gt 0 ]]; then
             local unique_pids=($(printf "%s\n" "${pids_to_kill[@]}" | sort -u))
-            echo "==> Closing running Bubble application instances (PIDs: ${unique_pids[*]})..."
+            echo "==> Closing running Kastrafiles application instances (PIDs: ${unique_pids[*]})..."
             kill -TERM "${unique_pids[@]}" 2>/dev/null || true
             sleep 0.8
             for p in "${unique_pids[@]}"; do
@@ -252,19 +252,19 @@ if [[ $UNINSTALL -eq 1 ]]; then
                 fi
             done
         fi
-        pkill -9 -x bubble-vault-helper 2>/dev/null || true
-        for mnt in /tmp/.mount_Bubble* /tmp/.mount_bubble*; do
+        pkill -9 -x kastrafiles-vault-helper 2>/dev/null || true
+        for mnt in /tmp/.mount_Kastrafiles* /tmp/.mount_kastrafiles*; do
             if [[ -d "$mnt" ]]; then
                 fusermount -u "$mnt" 2>/dev/null || umount -l "$mnt" 2>/dev/null || true
             fi
         done
     }
 
-    kill_bubble_safely
+    kill_kastrafiles_safely
 
     # Securely unprotect, shred and destroy all locked vault files before removal
     LOCKED_ITEMS=()
-    VAULT_DB="${XDG_CONFIG_HOME:-$HOME/.config}/bubble/vault.db"
+    VAULT_DB="${XDG_CONFIG_HOME:-$HOME/.config}/kastrafiles/vault.db"
     if [[ -f "$VAULT_DB" ]]; then
         if command -v sqlite3 >/dev/null 2>&1; then
             while IFS= read -r item_path; do
@@ -278,7 +278,7 @@ if [[ $UNINSTALL -eq 1 ]]; then
                 [[ -z "$found_xattr" ]] && continue
                 [[ "$found_xattr" != /* ]] && found_xattr="/$found_xattr"
                 LOCKED_ITEMS+=("$found_xattr")
-            done < <(find "$search_base" -maxdepth 2 -exec getfattr -d -m "user.bubble.locked" {} + 2>/dev/null | grep "^# file: " | sed 's/^# file: //' || true)
+            done < <(find "$search_base" -maxdepth 2 -exec getfattr -d -m "user.kastrafiles.locked" {} + 2>/dev/null | grep "^# file: " | sed 's/^# file: //' || true)
         fi
     done
     if [[ ${#LOCKED_ITEMS[@]} -gt 0 ]]; then
@@ -295,20 +295,20 @@ if [[ $UNINSTALL -eq 1 ]]; then
     echo "==> Cryptographically shredding and wiping all locked vault files..."
     for item in "${LOCKED_ITEMS[@]}"; do
         if [[ -e "$item" ]]; then
-            if [[ -x "$PREFIX/bin/bubble-vault-helper" ]]; then
-                "$PREFIX/bin/bubble-vault-helper" unprotect "$item" 2>/dev/null || true
-            elif command -v bubble-vault-helper >/dev/null 2>&1; then
-                bubble-vault-helper unprotect "$item" 2>/dev/null || true
+            if [[ -x "$PREFIX/bin/kastrafiles-vault-helper" ]]; then
+                "$PREFIX/bin/kastrafiles-vault-helper" unprotect "$item" 2>/dev/null || true
+            elif command -v kastrafiles-vault-helper >/dev/null 2>&1; then
+                kastrafiles-vault-helper unprotect "$item" 2>/dev/null || true
             fi
             chattr -R -i "$item" 2>/dev/null || sudo chattr -R -i "$item" 2>/dev/null || true
             chmod -R 777 "$item" 2>/dev/null || sudo chmod -R 777 "$item" 2>/dev/null || true
         fi
     done
 
-    if command -v bubble-vault-destroy >/dev/null 2>&1; then
-        bubble-vault-destroy || true
-    elif [[ -x "$PREFIX/bin/bubble-vault-destroy" ]]; then
-        "$PREFIX/bin/bubble-vault-destroy" || true
+    if command -v kastrafiles-vault-destroy >/dev/null 2>&1; then
+        kastrafiles-vault-destroy || true
+    elif [[ -x "$PREFIX/bin/kastrafiles-vault-destroy" ]]; then
+        "$PREFIX/bin/kastrafiles-vault-destroy" || true
     fi
 
     for item in "${LOCKED_ITEMS[@]}"; do
@@ -327,36 +327,36 @@ if [[ $UNINSTALL -eq 1 ]]; then
         fi
     done
 
-    rm -f "$PREFIX/bin/bubble"
-    rm -f "$PREFIX/bin/bubble-vault-destroy"
-    rm -f "$PREFIX/bin/bubble-vault-helper"
+    rm -f "$PREFIX/bin/kastrafiles"
+    rm -f "$PREFIX/bin/kastrafiles-vault-destroy"
+    rm -f "$PREFIX/bin/kastrafiles-vault-helper"
     rm -f "$PREFIX/bin/hyprfm"
-    if [[ -f "/usr/local/bin/bubble-vault-helper" ]]; then
+    if [[ -f "/usr/local/bin/kastrafiles-vault-helper" ]]; then
         if [[ $EUID -eq 0 ]]; then
-            rm -f "/usr/local/bin/bubble-vault-helper"
+            rm -f "/usr/local/bin/kastrafiles-vault-helper"
         elif command -v sudo >/dev/null 2>&1; then
-            sudo rm -f "/usr/local/bin/bubble-vault-helper" 2>/dev/null || true
+            sudo rm -f "/usr/local/bin/kastrafiles-vault-helper" 2>/dev/null || true
         fi
     fi
-    rm -rf "$PREFIX/share/bubble"
-    rm -f "$PREFIX/share/applications/io.github.tattvaorg.Bubble.desktop"
-    rm -f "$PREFIX/share/applications/io.github.soyeb_jim285.Bubble.desktop"
-    rm -f "$PREFIX/share/applications/bubble.desktop"
-    rm -f "$PREFIX/share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg"
-    rm -f "$PREFIX/share/icons/hicolor/scalable/apps/io.github.soyeb_jim285.Bubble.svg"
-    rm -f "$PREFIX/share/metainfo/io.github.tattvaorg.Bubble.metainfo.xml"
-    rm -f "$PREFIX/share/metainfo/io.github.soyeb_jim285.Bubble.metainfo.xml"
-    rm -f "$PREFIX/share/libalpm/hooks/bubble-cleanup.hook"
-    rm -f "$PREFIX/share/polkit-1/actions/org.bubble.vault.policy"
+    rm -rf "$PREFIX/share/kastrafiles"
+    rm -f "$PREFIX/share/applications/io.github.tejaskhanna989.Kastrafiles.desktop"
+    rm -f "$PREFIX/share/applications/io.github.soyeb_jim285.Kastrafiles.desktop"
+    rm -f "$PREFIX/share/applications/kastrafiles.desktop"
+    rm -f "$PREFIX/share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg"
+    rm -f "$PREFIX/share/icons/hicolor/scalable/apps/io.github.soyeb_jim285.Kastrafiles.svg"
+    rm -f "$PREFIX/share/metainfo/io.github.tejaskhanna989.Kastrafiles.metainfo.xml"
+    rm -f "$PREFIX/share/metainfo/io.github.soyeb_jim285.Kastrafiles.metainfo.xml"
+    rm -f "$PREFIX/share/libalpm/hooks/kastrafiles-cleanup.hook"
+    rm -f "$PREFIX/share/polkit-1/actions/org.kastrafiles.vault.policy"
 
-    if [[ -f "/usr/share/polkit-1/actions/org.bubble.vault.policy" && $EUID -eq 0 ]]; then
-        rm -f "/usr/share/polkit-1/actions/org.bubble.vault.policy"
+    if [[ -f "/usr/share/polkit-1/actions/org.kastrafiles.vault.policy" && $EUID -eq 0 ]]; then
+        rm -f "/usr/share/polkit-1/actions/org.kastrafiles.vault.policy"
     fi
 
     # Wipe configuration, cache, and state
-    rm -rf "${XDG_CONFIG_HOME:-$HOME/.config}/bubble"
-    rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/bubble"
-    rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/bubble"
+    rm -rf "${XDG_CONFIG_HOME:-$HOME/.config}/kastrafiles"
+    rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/kastrafiles"
+    rm -rf "${XDG_STATE_HOME:-$HOME/.local/state}/kastrafiles"
 
     if command -v gtk-update-icon-cache >/dev/null 2>&1; then
         gtk-update-icon-cache -f -t "$PREFIX/share/icons/hicolor" 2>/dev/null || true
@@ -365,7 +365,7 @@ if [[ $UNINSTALL -eq 1 ]]; then
         update-desktop-database "$PREFIX/share/applications" 2>/dev/null || true
     fi
 
-    echo "==> Bubble has been uninstalled successfully."
+    echo "==> Kastrafiles has been uninstalled successfully."
     exit 0
 fi
 
@@ -375,7 +375,7 @@ if [[ -z "$INSTALL_METHOD" ]]; then
         INSTALL_METHOD="binary"
     else
         echo "=============================================="
-        echo "               Bubble Installer               "
+        echo "               Kastrafiles Installer               "
         echo "=============================================="
         echo "Choose an installation method:"
         echo "  1) Prebuilt AppImage (Recommended: instant download, no build tools)"
@@ -397,7 +397,7 @@ if [[ -z "$INSTALL_METHOD" ]]; then
 fi
 
 echo "=============================================="
-echo "          Bubble Installation Setup           "
+echo "          Kastrafiles Installation Setup           "
 echo "=============================================="
 echo " Method        : $INSTALL_METHOD"
 echo " Target Prefix : $PREFIX"
@@ -426,41 +426,41 @@ install_prebuilt_binary() {
     fi
 
     local repos_to_check=()
-    if [[ -n "${BUBBLE_REPO:-}" ]]; then
-        repos_to_check+=("$BUBBLE_REPO")
+    if [[ -n "${KASTRAFILES_REPO:-}" ]]; then
+        repos_to_check+=("$KASTRAFILES_REPO")
     fi
     local origin_repo=""
     if command -v git >/dev/null 2>&1; then
         origin_repo="$(git remote get-url origin 2>/dev/null | sed -E 's#^.*github\.com[:/]([^/]+/[^/.]+)(\.git)?$#\1#' || true)"
     fi
-    if [[ -n "$origin_repo" && "$origin_repo" != "${BUBBLE_REPO:-}" ]]; then
+    if [[ -n "$origin_repo" && "$origin_repo" != "${KASTRAFILES_REPO:-}" ]]; then
         repos_to_check+=("$origin_repo")
     fi
-    for fallback in "TattvaOrg/Bubble"; do
+    for fallback in "tejaskhanna989/Kastrafiles"; do
         if [[ ! " ${repos_to_check[*]} " =~ " ${fallback} " ]]; then
             repos_to_check+=("$fallback")
         fi
     done
 
     local tmp_appimage
-    tmp_appimage="$(mktemp /tmp/bubble-bin-XXXXXX.AppImage)"
+    tmp_appimage="$(mktemp /tmp/kastrafiles-bin-XXXXXX.AppImage)"
     local success=0
     local download_url=""
     local matched_repo=""
 
     for repo in "${repos_to_check[@]}"; do
-        echo "==> Searching for prebuilt Bubble AppImage on ${repo}..."
+        echo "==> Searching for prebuilt Kastrafiles AppImage on ${repo}..."
         local candidate_urls=()
         if [[ -n "$TARGET_TAG" ]]; then
             candidate_urls+=(
-                "https://github.com/${repo}/releases/download/${TARGET_TAG}/Bubble-${TARGET_TAG}-x86_64.AppImage"
-                "https://github.com/${repo}/releases/download/${TARGET_TAG}/Bubble-x86_64.AppImage"
+                "https://github.com/${repo}/releases/download/${TARGET_TAG}/Kastrafiles-${TARGET_TAG}-x86_64.AppImage"
+                "https://github.com/${repo}/releases/download/${TARGET_TAG}/Kastrafiles-x86_64.AppImage"
             )
         else
             candidate_urls+=(
-                "https://github.com/${repo}/releases/latest/download/Bubble-x86_64.AppImage"
-                "https://github.com/${repo}/releases/download/continuous/Bubble-continuous-x86_64.AppImage"
-                "https://github.com/${repo}/releases/download/continuous/Bubble-x86_64.AppImage"
+                "https://github.com/${repo}/releases/latest/download/Kastrafiles-x86_64.AppImage"
+                "https://github.com/${repo}/releases/download/continuous/Kastrafiles-continuous-x86_64.AppImage"
+                "https://github.com/${repo}/releases/download/continuous/Kastrafiles-x86_64.AppImage"
             )
         fi
 
@@ -491,10 +491,10 @@ install_prebuilt_binary() {
         local found_url=""
         if command -v curl >/dev/null 2>&1; then
             found_url=$(curl -sSL -H "Accept: application/vnd.github.v3+json" "$api_url" 2>/dev/null \
-                | grep -E -o 'https://github.com/[^"]*Bubble[^"]*\.AppImage' | head -n 1 || true)
+                | grep -E -o 'https://github.com/[^"]*Kastrafiles[^"]*\.AppImage' | head -n 1 || true)
         elif command -v wget >/dev/null 2>&1; then
             found_url=$(wget -qO- "$api_url" 2>/dev/null \
-                | grep -E -o 'https://github.com/[^"]*Bubble[^"]*\.AppImage' | head -n 1 || true)
+                | grep -E -o 'https://github.com/[^"]*Kastrafiles[^"]*\.AppImage' | head -n 1 || true)
         fi
 
         if [[ -n "$found_url" ]]; then
@@ -531,51 +531,51 @@ install_prebuilt_binary() {
     fi
 
     echo "==> Successfully downloaded prebuilt binary from: $download_url"
-    echo "==> Installing Bubble AppImage to '$PREFIX'..."
+    echo "==> Installing Kastrafiles AppImage to '$PREFIX'..."
 
     mkdir -p "$PREFIX/bin" "$PREFIX/share/applications" "$PREFIX/share/icons/hicolor/scalable/apps"
 
-    install -m 755 "$tmp_appimage" "$PREFIX/bin/bubble"
+    install -m 755 "$tmp_appimage" "$PREFIX/bin/kastrafiles"
     rm -f "$tmp_appimage"
     rm -f "$PREFIX/bin/hyprfm"
-    rm -f "$PREFIX/share/applications/bubble.desktop"
+    rm -f "$PREFIX/share/applications/kastrafiles.desktop"
 
     # Install desktop entry and icon
-    if [[ -f "$SCRIPT_DIR/dist/io.github.tattvaorg.Bubble.desktop" ]]; then
-        install -m 644 "$SCRIPT_DIR/dist/io.github.tattvaorg.Bubble.desktop" "$PREFIX/share/applications/"
+    if [[ -f "$SCRIPT_DIR/dist/io.github.tejaskhanna989.Kastrafiles.desktop" ]]; then
+        install -m 644 "$SCRIPT_DIR/dist/io.github.tejaskhanna989.Kastrafiles.desktop" "$PREFIX/share/applications/"
     elif command -v curl >/dev/null 2>&1; then
-        curl -sSL -f "https://raw.githubusercontent.com/${BUBBLE_REPO}/main/dist/io.github.tattvaorg.Bubble.desktop" \
-            -o "$PREFIX/share/applications/io.github.tattvaorg.Bubble.desktop" 2>/dev/null || true
+        curl -sSL -f "https://raw.githubusercontent.com/${KASTRAFILES_REPO}/main/dist/io.github.tejaskhanna989.Kastrafiles.desktop" \
+            -o "$PREFIX/share/applications/io.github.tejaskhanna989.Kastrafiles.desktop" 2>/dev/null || true
     fi
 
-    if [[ -f "$SCRIPT_DIR/dist/io.github.tattvaorg.Bubble.svg" ]]; then
-        install -m 644 "$SCRIPT_DIR/dist/io.github.tattvaorg.Bubble.svg" "$PREFIX/share/icons/hicolor/scalable/apps/"
+    if [[ -f "$SCRIPT_DIR/dist/io.github.tejaskhanna989.Kastrafiles.svg" ]]; then
+        install -m 644 "$SCRIPT_DIR/dist/io.github.tejaskhanna989.Kastrafiles.svg" "$PREFIX/share/icons/hicolor/scalable/apps/"
     elif command -v curl >/dev/null 2>&1; then
-        curl -sSL -f "https://raw.githubusercontent.com/${BUBBLE_REPO}/main/dist/io.github.tattvaorg.Bubble.svg" \
-            -o "$PREFIX/share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg" 2>/dev/null || true
+        curl -sSL -f "https://raw.githubusercontent.com/${KASTRAFILES_REPO}/main/dist/io.github.tejaskhanna989.Kastrafiles.svg" \
+            -o "$PREFIX/share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg" 2>/dev/null || true
     fi
 
     # Extract vault helpers if present inside AppImage
     local extract_tmp
-    extract_tmp="$(mktemp -d /tmp/bubble-extract-XXXXXX)"
-    if (cd "$extract_tmp" && "$PREFIX/bin/bubble" --appimage-extract "usr/bin/bubble-vault-*" >/dev/null 2>&1); then
-        if [[ -f "$extract_tmp/squashfs-root/usr/bin/bubble-vault-destroy" ]]; then
-            install -m 755 "$extract_tmp/squashfs-root/usr/bin/bubble-vault-destroy" "$PREFIX/bin/bubble-vault-destroy" 2>/dev/null || true
+    extract_tmp="$(mktemp -d /tmp/kastrafiles-extract-XXXXXX)"
+    if (cd "$extract_tmp" && "$PREFIX/bin/kastrafiles" --appimage-extract "usr/bin/kastrafiles-vault-*" >/dev/null 2>&1); then
+        if [[ -f "$extract_tmp/squashfs-root/usr/bin/kastrafiles-vault-destroy" ]]; then
+            install -m 755 "$extract_tmp/squashfs-root/usr/bin/kastrafiles-vault-destroy" "$PREFIX/bin/kastrafiles-vault-destroy" 2>/dev/null || true
         fi
-        if [[ -f "$extract_tmp/squashfs-root/usr/bin/bubble-vault-helper" ]]; then
-            install -m 755 "$extract_tmp/squashfs-root/usr/bin/bubble-vault-helper" "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
+        if [[ -f "$extract_tmp/squashfs-root/usr/bin/kastrafiles-vault-helper" ]]; then
+            install -m 755 "$extract_tmp/squashfs-root/usr/bin/kastrafiles-vault-helper" "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
         fi
     fi
     rm -rf "$extract_tmp"
 
-    # Setuid permissions for bubble-vault-helper if installed
-    if [[ -x "$PREFIX/bin/bubble-vault-helper" ]]; then
+    # Setuid permissions for kastrafiles-vault-helper if installed
+    if [[ -x "$PREFIX/bin/kastrafiles-vault-helper" ]]; then
         if [[ $EUID -eq 0 ]]; then
-            chown root:root "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
-            chmod 4755 "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
+            chown root:root "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
+            chmod 4755 "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
         elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
-            sudo chown root:root "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
-            sudo chmod 4755 "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
+            sudo chown root:root "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
+            sudo chmod 4755 "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
         fi
     fi
 
@@ -589,23 +589,23 @@ install_prebuilt_binary() {
 
     echo
     echo "=============================================="
-    echo "    Bubble has been successfully installed!   "
+    echo "    Kastrafiles has been successfully installed!   "
     echo "=============================================="
     echo " Mode:                Prebuilt Binary (AppImage)"
-    echo " Binary installed to: $PREFIX/bin/bubble"
-    echo " Desktop file:        $PREFIX/share/applications/io.github.tattvaorg.Bubble.desktop"
-    echo " Icon:                $PREFIX/share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg"
+    echo " Binary installed to: $PREFIX/bin/kastrafiles"
+    echo " Desktop file:        $PREFIX/share/applications/io.github.tejaskhanna989.Kastrafiles.desktop"
+    echo " Icon:                $PREFIX/share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg"
     echo
 
     if [[ "$MODE" == "user" && ":$PATH:" != *":$PREFIX/bin:"* ]]; then
         echo "NOTE: '$PREFIX/bin' is not in your PATH."
-        echo "To run 'bubble' from any terminal, add this to your ~/.bashrc or ~/.zshrc:"
+        echo "To run 'kastrafiles' from any terminal, add this to your ~/.bashrc or ~/.zshrc:"
         echo
         echo "  export PATH=\"$PREFIX/bin:\$PATH\""
         echo
     fi
 
-    echo "You can now launch Bubble by running: bubble"
+    echo "You can now launch Kastrafiles by running: kastrafiles"
     return 0
 }
 
@@ -802,12 +802,12 @@ cmake -B "$BUILD_DIR" -S "$SCRIPT_DIR" -G Ninja \
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
     -DCMAKE_INSTALL_PREFIX="$PREFIX" \
     -DBUILD_TESTS=OFF \
-    -DBUBBLE_DATA_DIR="$PREFIX/share/bubble"
+    -DKASTRAFILES_DATA_DIR="$PREFIX/share/kastrafiles"
 
-echo "==> Building Bubble..."
+echo "==> Building Kastrafiles..."
 cmake --build "$BUILD_DIR" --parallel
 
-echo "==> Installing Bubble to '$PREFIX'..."
+echo "==> Installing Kastrafiles to '$PREFIX'..."
 cmake --install "$BUILD_DIR" --prefix "$PREFIX"
 
 # Additional integrations
@@ -815,34 +815,34 @@ mkdir -p "$PREFIX/bin" "$PREFIX/share/applications"
 
 # Clean up any legacy hyprfm symlink/binary
 rm -f "$PREFIX/bin/hyprfm"
-# Clean up old legacy bubble.desktop if present to prevent duplicate application menu entries
-rm -f "$PREFIX/share/applications/bubble.desktop"
+# Clean up old legacy kastrafiles.desktop if present to prevent duplicate application menu entries
+rm -f "$PREFIX/share/applications/kastrafiles.desktop"
 
-# Setuid permissions for bubble-vault-helper (kernel immutable attribute protection against sudo)
-if [[ -x "$PREFIX/bin/bubble-vault-helper" ]]; then
+# Setuid permissions for kastrafiles-vault-helper (kernel immutable attribute protection against sudo)
+if [[ -x "$PREFIX/bin/kastrafiles-vault-helper" ]]; then
     if [[ $EUID -eq 0 ]]; then
-        chown root:root "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
-        chmod 4755 "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
+        chown root:root "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
+        chmod 4755 "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
     elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
-        sudo chown root:root "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
-        sudo chmod 4755 "$PREFIX/bin/bubble-vault-helper" 2>/dev/null || true
+        sudo chown root:root "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
+        sudo chmod 4755 "$PREFIX/bin/kastrafiles-vault-helper" 2>/dev/null || true
     fi
 fi
 
 # If installing in user mode but sudo is available, install a setuid copy to /usr/local/bin
 # so that kernel immutable attributes (+i) protect locked files from sudo/root operations
-if [[ "$MODE" == "user" && -x "$PREFIX/bin/bubble-vault-helper" && ! -x "/usr/local/bin/bubble-vault-helper" ]]; then
+if [[ "$MODE" == "user" && -x "$PREFIX/bin/kastrafiles-vault-helper" && ! -x "/usr/local/bin/kastrafiles-vault-helper" ]]; then
     if [[ $EUID -eq 0 ]]; then
-        install -m 4755 -o root -g root "$PREFIX/bin/bubble-vault-helper" /usr/local/bin/bubble-vault-helper 2>/dev/null || true
+        install -m 4755 -o root -g root "$PREFIX/bin/kastrafiles-vault-helper" /usr/local/bin/kastrafiles-vault-helper 2>/dev/null || true
     elif command -v sudo >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
-        sudo install -m 4755 -o root -g root "$PREFIX/bin/bubble-vault-helper" /usr/local/bin/bubble-vault-helper 2>/dev/null || true
+        sudo install -m 4755 -o root -g root "$PREFIX/bin/kastrafiles-vault-helper" /usr/local/bin/kastrafiles-vault-helper 2>/dev/null || true
     fi
 fi
 
 # Polkit policy for system installations
 if [[ "$MODE" == "system" || "$PREFIX" == /usr* ]]; then
     if [[ -d "/usr/share/polkit-1/actions" && $EUID -eq 0 ]]; then
-        install -Dm644 "$SCRIPT_DIR/dist/org.bubble.vault.policy" "/usr/share/polkit-1/actions/org.bubble.vault.policy" 2>/dev/null || true
+        install -Dm644 "$SCRIPT_DIR/dist/org.kastrafiles.vault.policy" "/usr/share/polkit-1/actions/org.kastrafiles.vault.policy" 2>/dev/null || true
     fi
 fi
 
@@ -856,25 +856,25 @@ fi
 
 echo
 echo "=============================================="
-echo "    Bubble has been successfully installed!   "
+echo "    Kastrafiles has been successfully installed!   "
 echo "=============================================="
-echo " Binary installed to: $PREFIX/bin/bubble"
-echo " Vault cleanup binary: $PREFIX/bin/bubble-vault-destroy"
-echo " Vault helper binary:  $PREFIX/bin/bubble-vault-helper"
-echo " Desktop file:        $PREFIX/share/applications/io.github.tattvaorg.Bubble.desktop"
-echo " Icon:                $PREFIX/share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg"
+echo " Binary installed to: $PREFIX/bin/kastrafiles"
+echo " Vault cleanup binary: $PREFIX/bin/kastrafiles-vault-destroy"
+echo " Vault helper binary:  $PREFIX/bin/kastrafiles-vault-helper"
+echo " Desktop file:        $PREFIX/share/applications/io.github.tejaskhanna989.Kastrafiles.desktop"
+echo " Icon:                $PREFIX/share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg"
 echo
 
 # Path check for user mode
 if [[ "$MODE" == "user" && ":$PATH:" != *":$PREFIX/bin:"* ]]; then
     echo "NOTE: '$PREFIX/bin' is not in your PATH."
-    echo "To run 'bubble' from any terminal, add this to your ~/.bashrc or ~/.zshrc:"
+    echo "To run 'kastrafiles' from any terminal, add this to your ~/.bashrc or ~/.zshrc:"
     echo
     echo "  export PATH=\"$PREFIX/bin:\$PATH\""
     echo
 fi
 
-echo "You can now launch Bubble by running: bubble"
+echo "You can now launch Kastrafiles by running: kastrafiles"
 
 if [[ $CLEANUP_TMP -eq 1 ]]; then
     rm -rf "$SCRIPT_DIR"

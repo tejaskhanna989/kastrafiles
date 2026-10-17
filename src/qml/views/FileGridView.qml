@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls
-import Bubble
+import Kastrafiles
 import Quill as Q
 
 GridView {

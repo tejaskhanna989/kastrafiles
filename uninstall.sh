@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Bubble Uninstaller Script
+# Kastrafiles Uninstaller Script
 # ==============================================================================
-# Safely removes Bubble binaries, desktop integration, terminates running processes,
+# Safely removes Kastrafiles binaries, desktop integration, terminates running processes,
 # and permanently wipes all locked vault files/folders, configurations, and caches.
 #
 # Usage:
 #   ./uninstall.sh                # Non-interactive complete wipeout
 #   ./uninstall.sh --prefix <dir> # Target a specific installation prefix
-#   curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/uninstall.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/uninstall.sh | bash
 # ==============================================================================
 
 set -euo pipefail
@@ -18,7 +18,7 @@ CUSTOM_PREFIX=""
 
 print_usage() {
     cat <<USAGE
-Bubble Uninstaller
+Kastrafiles Uninstaller
 
 Usage:
   ./uninstall.sh [options]
@@ -30,7 +30,7 @@ Options:
 
 Examples:
   ./uninstall.sh
-  curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/uninstall.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/uninstall.sh | bash
 USAGE
 }
 
@@ -61,14 +61,14 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "=============================================="
-echo "              Bubble Uninstaller              "
+echo "              Kastrafiles Uninstaller              "
 echo "=============================================="
 
 # Helper for running elevated commands when needed
 run_elevated() {
     if [[ $EUID -eq 0 ]]; then
         "$@"
-    elif [[ -n "$BUBBLE_NONINTERACTIVE" ]]; then
+    elif [[ -n "$KASTRAFILES_NONINTERACTIVE" ]]; then
         sudo -n "$@" 2>/dev/null || true
     elif command -v sudo >/dev/null 2>&1; then
         if [[ -c /dev/tty && -t 1 ]]; then
@@ -88,15 +88,15 @@ run_elevated() {
 }
 
 # ------------------------------------------------------------------------------
-# 0. Terminate running Bubble instances safely and completely
+# 0. Terminate running Kastrafiles instances safely and completely
 # ------------------------------------------------------------------------------
-kill_bubble_safely() {
+kill_kastrafiles_safely() {
     local my_pid="$$"
     local parent_pid="$PPID"
     local pids_to_kill=()
 
     # 1. Check fuser on CONFIG_DIR if available to terminate processes locking vault.db
-    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bubble"
+    local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/kastrafiles"
     if command -v fuser >/dev/null 2>&1 && [[ -d "$config_dir" ]]; then
         for cfg_item in "$config_dir" "$config_dir"/*; do
             [[ -e "$cfg_item" ]] || continue
@@ -126,23 +126,23 @@ kill_bubble_safely() {
         local exe=""
         [[ -L "/proc/$pid/exe" ]] && exe="$(readlink -f "/proc/$pid/exe" 2>/dev/null || true)"
 
-        # Skip common shell/system interpreters unless their exe or cmdline is explicitly bubble
+        # Skip common shell/system interpreters unless their exe or cmdline is explicitly kastrafiles
         if [[ "$comm" =~ ^(bash|sh|zsh|sudo|curl|wget|python|python3|node)$ ]]; then
-            if [[ "$exe" != */bin/bubble && "$exe" != */.mount_Bubble* && "$exe" != */.mount_bubble* ]]; then
+            if [[ "$exe" != */bin/kastrafiles && "$exe" != */.mount_Kastrafiles* && "$exe" != */.mount_kastrafiles* ]]; then
                 continue
             fi
         fi
 
-        local is_bubble=0
-        if [[ "$comm" == "bubble" || "$comm" == "bubble-vault-helper" || "$comm" == "bubble-vault-destroy" || "$comm" == "hyprfm" ]]; then
-            is_bubble=1
-        elif [[ "$exe" == */bin/bubble || "$exe" == */build/*/bubble || "$exe" == */.mount_Bubble* || "$exe" == */.mount_bubble* || "$exe" == *Bubble*.AppImage* ]]; then
-            is_bubble=1
-        elif [[ "$comm" == "AppRun"* && ("$exe" == */.mount_* || "$cmdline" == *bubble* || "$cmdline" == *Bubble*) ]]; then
-            is_bubble=1
+        local is_kastrafiles=0
+        if [[ "$comm" == "kastrafiles" || "$comm" == "kastrafiles-vault-helper" || "$comm" == "kastrafiles-vault-destroy" || "$comm" == "hyprfm" ]]; then
+            is_kastrafiles=1
+        elif [[ "$exe" == */bin/kastrafiles || "$exe" == */build/*/kastrafiles || "$exe" == */.mount_Kastrafiles* || "$exe" == */.mount_kastrafiles* || "$exe" == *Kastrafiles*.AppImage* ]]; then
+            is_kastrafiles=1
+        elif [[ "$comm" == "AppRun"* && ("$exe" == */.mount_* || "$cmdline" == *kastrafiles* || "$cmdline" == *Kastrafiles*) ]]; then
+            is_kastrafiles=1
         fi
 
-        if [[ $is_bubble -eq 1 ]]; then
+        if [[ $is_kastrafiles -eq 1 ]]; then
             pids_to_kill+=("$pid")
         fi
     done
@@ -150,7 +150,7 @@ kill_bubble_safely() {
     # Deduplicate and terminate
     if [[ ${#pids_to_kill[@]} -gt 0 ]]; then
         local unique_pids=($(printf "%s\n" "${pids_to_kill[@]}" | sort -u))
-        echo "==> Closing running Bubble application instances (PIDs: ${unique_pids[*]})..."
+        echo "==> Closing running Kastrafiles application instances (PIDs: ${unique_pids[*]})..."
         kill -TERM "${unique_pids[@]}" 2>/dev/null || true
         sleep 0.8
         for p in "${unique_pids[@]}"; do
@@ -160,22 +160,22 @@ kill_bubble_safely() {
         done
     fi
 
-    pkill -9 -x bubble-vault-helper 2>/dev/null || true
+    pkill -9 -x kastrafiles-vault-helper 2>/dev/null || true
 
     # Clean up lingering AppImage FUSE mounts
-    for mnt in /tmp/.mount_Bubble* /tmp/.mount_bubble*; do
+    for mnt in /tmp/.mount_Kastrafiles* /tmp/.mount_kastrafiles*; do
         if [[ -d "$mnt" ]]; then
             fusermount -u "$mnt" 2>/dev/null || umount -l "$mnt" 2>/dev/null || true
         fi
     done
 }
 
-kill_bubble_safely
+kill_kastrafiles_safely
 
 USER_PREFIX="${XDG_DATA_HOME:-$HOME/.local}"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/bubble"
-CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/bubble"
-STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/bubble"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/kastrafiles"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/kastrafiles"
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/kastrafiles"
 
 # List of prefixes to inspect
 SCAN_PREFIXES=("$USER_PREFIX" "/usr/local")
@@ -183,8 +183,8 @@ if [[ -n "$CUSTOM_PREFIX" ]]; then
     SCAN_PREFIXES+=("$CUSTOM_PREFIX")
 fi
 
-# Also check /usr if bubble is located there and not part of distro package manager
-if [[ -f "/usr/bin/bubble" && ! -f "/var/lib/pacman/local/bubble*" && ! -f "/var/lib/dpkg/info/bubble.list" ]]; then
+# Also check /usr if kastrafiles is located there and not part of distro package manager
+if [[ -f "/usr/bin/kastrafiles" && ! -f "/var/lib/pacman/local/kastrafiles*" && ! -f "/var/lib/dpkg/info/kastrafiles.list" ]]; then
     SCAN_PREFIXES+=("/usr")
 fi
 
@@ -206,13 +206,13 @@ for prefix in "${SCAN_PREFIXES[@]}"; do
     fi
 
     # Binaries
-    for bin in bubble bubble-vault-destroy bubble-vault-helper hyprfm; do
+    for bin in kastrafiles kastrafiles-vault-destroy kastrafiles-vault-helper hyprfm; do
         target="$prefix/bin/$bin"
         if [[ -f "$target" || -L "$target" ]]; then
-            if [[ -z "$VAULT_DESTROY_BIN" && "$bin" == "bubble-vault-destroy" && -x "$target" ]]; then
+            if [[ -z "$VAULT_DESTROY_BIN" && "$bin" == "kastrafiles-vault-destroy" && -x "$target" ]]; then
                 VAULT_DESTROY_BIN="$target"
             fi
-            if [[ "$bin" == "bubble-vault-helper" && -x "$target" ]]; then
+            if [[ "$bin" == "kastrafiles-vault-helper" && -x "$target" ]]; then
                 if [[ -z "$VAULT_HELPER_BIN" || ( ! -u "$VAULT_HELPER_BIN" && -u "$target" ) ]]; then
                     VAULT_HELPER_BIN="$target"
                 fi
@@ -226,7 +226,7 @@ for prefix in "${SCAN_PREFIXES[@]}"; do
     done
 
     # Desktop files
-    for desktop in io.github.tattvaorg.Bubble.desktop io.github.soyeb_jim285.Bubble.desktop bubble.desktop hyprfm.desktop; do
+    for desktop in io.github.tejaskhanna989.Kastrafiles.desktop io.github.soyeb_jim285.Kastrafiles.desktop kastrafiles.desktop hyprfm.desktop; do
         target="$prefix/share/applications/$desktop"
         if [[ -f "$target" || -L "$target" ]]; then
             if [[ $is_system -eq 1 ]]; then
@@ -239,12 +239,12 @@ for prefix in "${SCAN_PREFIXES[@]}"; do
 
     # Icons & metainfo
     for item in \
-        "share/icons/hicolor/scalable/apps/io.github.tattvaorg.Bubble.svg" \
-        "share/icons/hicolor/scalable/apps/io.github.soyeb_jim285.Bubble.svg" \
-        "share/metainfo/io.github.tattvaorg.Bubble.metainfo.xml" \
-        "share/metainfo/io.github.soyeb_jim285.Bubble.metainfo.xml" \
-        "share/libalpm/hooks/bubble-cleanup.hook" \
-        "share/polkit-1/actions/org.bubble.vault.policy"; do
+        "share/icons/hicolor/scalable/apps/io.github.tejaskhanna989.Kastrafiles.svg" \
+        "share/icons/hicolor/scalable/apps/io.github.soyeb_jim285.Kastrafiles.svg" \
+        "share/metainfo/io.github.tejaskhanna989.Kastrafiles.metainfo.xml" \
+        "share/metainfo/io.github.soyeb_jim285.Kastrafiles.metainfo.xml" \
+        "share/libalpm/hooks/kastrafiles-cleanup.hook" \
+        "share/polkit-1/actions/org.kastrafiles.vault.policy"; do
         target="$prefix/$item"
         if [[ -f "$target" || -L "$target" ]]; then
             if [[ $is_system -eq 1 ]]; then
@@ -256,7 +256,7 @@ for prefix in "${SCAN_PREFIXES[@]}"; do
     done
 
     # App data dir
-    target_dir="$prefix/share/bubble"
+    target_dir="$prefix/share/kastrafiles"
     if [[ -d "$target_dir" ]]; then
         if [[ $is_system -eq 1 ]]; then
             SYSTEM_DIRS+=("$target_dir")
@@ -267,24 +267,24 @@ for prefix in "${SCAN_PREFIXES[@]}"; do
 done
 
 # Check global polkit policy
-if [[ -f "/usr/share/polkit-1/actions/org.bubble.vault.policy" ]]; then
-    SYSTEM_FILES+=("/usr/share/polkit-1/actions/org.bubble.vault.policy")
+if [[ -f "/usr/share/polkit-1/actions/org.kastrafiles.vault.policy" ]]; then
+    SYSTEM_FILES+=("/usr/share/polkit-1/actions/org.kastrafiles.vault.policy")
 fi
 
-# Check global bubble-vault-helper
-if [[ -f "/usr/local/bin/bubble-vault-helper" ]]; then
+# Check global kastrafiles-vault-helper
+if [[ -f "/usr/local/bin/kastrafiles-vault-helper" ]]; then
     if [[ -z "$VAULT_HELPER_BIN" ]]; then
-        VAULT_HELPER_BIN="/usr/local/bin/bubble-vault-helper"
+        VAULT_HELPER_BIN="/usr/local/bin/kastrafiles-vault-helper"
     fi
     already_found=0
     for f in "${SYSTEM_FILES[@]}"; do
-        if [[ "$f" == "/usr/local/bin/bubble-vault-helper" ]]; then
+        if [[ "$f" == "/usr/local/bin/kastrafiles-vault-helper" ]]; then
             already_found=1
             break
         fi
     done
     if [[ $already_found -eq 0 ]]; then
-        SYSTEM_FILES+=("/usr/local/bin/bubble-vault-helper")
+        SYSTEM_FILES+=("/usr/local/bin/kastrafiles-vault-helper")
     fi
 fi
 
@@ -295,11 +295,11 @@ fi
 [[ ${#SYSTEM_DIRS[@]} -gt 0 ]] && readarray -t SYSTEM_DIRS < <(printf "%s\n" "${SYSTEM_DIRS[@]}" | sort -u)
 
 # Fallback lookup for binaries in PATH
-if [[ -z "$VAULT_DESTROY_BIN" ]] && command -v bubble-vault-destroy >/dev/null 2>&1; then
-    VAULT_DESTROY_BIN="$(command -v bubble-vault-destroy)"
+if [[ -z "$VAULT_DESTROY_BIN" ]] && command -v kastrafiles-vault-destroy >/dev/null 2>&1; then
+    VAULT_DESTROY_BIN="$(command -v kastrafiles-vault-destroy)"
 fi
-if [[ -z "$VAULT_HELPER_BIN" ]] && command -v bubble-vault-helper >/dev/null 2>&1; then
-    VAULT_HELPER_BIN="$(command -v bubble-vault-helper)"
+if [[ -z "$VAULT_HELPER_BIN" ]] && command -v kastrafiles-vault-helper >/dev/null 2>&1; then
+    VAULT_HELPER_BIN="$(command -v kastrafiles-vault-helper)"
 fi
 
 # ------------------------------------------------------------------------------
@@ -311,12 +311,12 @@ if [[ -f "$CONFIG_DIR/vault.db" ]]; then
 fi
 if [[ $EUID -eq 0 ]]; then
     for udir in /home/*; do
-        if [[ -f "$udir/.config/bubble/vault.db" ]]; then
-            VAULT_DBS+=("$udir/.config/bubble/vault.db")
+        if [[ -f "$udir/.config/kastrafiles/vault.db" ]]; then
+            VAULT_DBS+=("$udir/.config/kastrafiles/vault.db")
         fi
     done
-    if [[ -f "/root/.config/bubble/vault.db" ]]; then
-        VAULT_DBS+=("/root/.config/bubble/vault.db")
+    if [[ -f "/root/.config/kastrafiles/vault.db" ]]; then
+        VAULT_DBS+=("/root/.config/kastrafiles/vault.db")
     fi
 fi
 
@@ -346,7 +346,7 @@ for vdb in "${VAULT_DBS[@]}"; do
     done < <(get_locked_items "$vdb")
 done
 
-# Secondary discovery: check common user directories for xattr user.bubble.locked
+# Secondary discovery: check common user directories for xattr user.kastrafiles.locked
 # in case vault.db was deleted or corrupted
 for search_base in "$HOME" "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads"; do
     if [[ -d "$search_base" ]]; then
@@ -354,7 +354,7 @@ for search_base in "$HOME" "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads"; 
             [[ -z "$found_xattr" ]] && continue
             [[ "$found_xattr" != /* ]] && found_xattr="/$found_xattr"
             LOCKED_ITEMS+=("$found_xattr")
-        done < <(find "$search_base" -maxdepth 2 -exec getfattr -d -m "user.bubble.locked" {} + 2>/dev/null | grep "^# file: " | sed 's/^# file: //' || true)
+        done < <(find "$search_base" -maxdepth 2 -exec getfattr -d -m "user.kastrafiles.locked" {} + 2>/dev/null | grep "^# file: " | sed 's/^# file: //' || true)
     fi
 done
 
@@ -372,14 +372,14 @@ if [[ $TOTAL_ITEMS -eq 0 ]]; then
         echo "==> Cleaned successfully."
         exit 0
     else
-        echo "==> No Bubble installation, configuration, or locked items detected on this system."
+        echo "==> No Kastrafiles installation, configuration, or locked items detected on this system."
         exit 0
     fi
 fi
 
 # Print detected installation components
 if [[ ${#USER_FILES[@]} -gt 0 || ${#SYSTEM_FILES[@]} -gt 0 || ${#USER_DIRS[@]} -gt 0 || ${#SYSTEM_DIRS[@]} -gt 0 ]]; then
-    echo "==> Detected Bubble installation components:"
+    echo "==> Detected Kastrafiles installation components:"
     for f in "${USER_FILES[@]}" "${SYSTEM_FILES[@]}"; do
         echo "  - $f"
     done
@@ -410,10 +410,10 @@ if [[ ${#LOCKED_ITEMS[@]} -gt 0 || -n "$VAULT_DESTROY_BIN" ]]; then
 
     helper_candidates=()
     [[ -n "$VAULT_HELPER_BIN" && -x "$VAULT_HELPER_BIN" ]] && helper_candidates+=("$VAULT_HELPER_BIN")
-    [[ -x "/usr/local/bin/bubble-vault-helper" ]] && helper_candidates+=("/usr/local/bin/bubble-vault-helper")
-    [[ -x "/usr/bin/bubble-vault-helper" ]] && helper_candidates+=("/usr/bin/bubble-vault-helper")
-    [[ -x "$USER_PREFIX/bin/bubble-vault-helper" ]] && helper_candidates+=("$USER_PREFIX/bin/bubble-vault-helper")
-    command -v bubble-vault-helper >/dev/null 2>&1 && helper_candidates+=("$(command -v bubble-vault-helper)")
+    [[ -x "/usr/local/bin/kastrafiles-vault-helper" ]] && helper_candidates+=("/usr/local/bin/kastrafiles-vault-helper")
+    [[ -x "/usr/bin/kastrafiles-vault-helper" ]] && helper_candidates+=("/usr/bin/kastrafiles-vault-helper")
+    [[ -x "$USER_PREFIX/bin/kastrafiles-vault-helper" ]] && helper_candidates+=("$USER_PREFIX/bin/kastrafiles-vault-helper")
+    command -v kastrafiles-vault-helper >/dev/null 2>&1 && helper_candidates+=("$(command -v kastrafiles-vault-helper)")
 
     # Step 1A: Unlock immutable attributes & grant permissions so files can be deleted
     for item in "${LOCKED_ITEMS[@]}"; do
@@ -435,11 +435,11 @@ if [[ ${#LOCKED_ITEMS[@]} -gt 0 || -n "$VAULT_DESTROY_BIN" ]]; then
         fi
     done
 
-    # Step 1B: Run bubble-vault-destroy if available
+    # Step 1B: Run kastrafiles-vault-destroy if available
     if [[ -n "$VAULT_DESTROY_BIN" && -x "$VAULT_DESTROY_BIN" ]]; then
         "$VAULT_DESTROY_BIN" || true
-    elif command -v bubble-vault-destroy >/dev/null 2>&1; then
-        bubble-vault-destroy || true
+    elif command -v kastrafiles-vault-destroy >/dev/null 2>&1; then
+        kastrafiles-vault-destroy || true
     fi
 
     # Step 1C: Direct shred and remove all tracked locked items (guarantees 100% deletion)
@@ -524,7 +524,7 @@ fi
 
 echo
 echo "=============================================="
-echo "    Bubble has been completely wiped out!     "
+echo "    Kastrafiles has been completely wiped out!     "
 echo "=============================================="
 echo
 exit 0

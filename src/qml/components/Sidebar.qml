@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
-import Bubble
+import Kastrafiles
 import Quill as Quill
 
 Rectangle {
@@ -134,7 +134,7 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-        // App header: "Bubble" logo + title + collapse button
+        // App header: "Kastrafiles" logo + title + collapse button
         Item {
             Layout.fillWidth: true
             height: 44
@@ -150,7 +150,7 @@ Rectangle {
                     width: 22
                     height: 22
                     sourceSize: Qt.size(44, 44)
-                    source: "../images/bubble.svg"
+                    source: "../images/kastrafiles.svg"
                     smooth: true
                     mipmap: true
                     fillMode: Image.PreserveAspectFit
@@ -158,7 +158,7 @@ Rectangle {
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "Bubble"
+                    text: "Kastrafiles"
                     color: Theme.text
                     font.pointSize: Theme.fontLarge
                     font.weight: Font.Bold

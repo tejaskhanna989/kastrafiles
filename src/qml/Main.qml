@@ -4,7 +4,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
 import QtQuick.Window
-import Bubble
+import Kastrafiles
 import "components" as Components
 import "views" as Views
 import Quill as Q
@@ -16,7 +16,7 @@ ApplicationWindow {
     minimumWidth: 760
     minimumHeight: 520
     visibility: Window.Windowed
-    title: "Bubble"
+    title: "Kastrafiles"
     color: "transparent"
     flags: Qt.platform.os === "linux" && runtimeFeatures.useIntegratedWindowControls
         ? (Qt.Window | Qt.FramelessWindowHint) : Qt.Window
@@ -172,7 +172,7 @@ ApplicationWindow {
             root.applyActiveTabSort()
         }
 
-        // Bridge Bubble theme into Quill theme singleton
+        // Bridge Kastrafiles theme into Quill theme singleton
         Q.Theme.background = Qt.binding(() => Theme.base)
         Q.Theme.backgroundAlt = Qt.binding(() => Theme.overlayBackground)
         Q.Theme.backgroundDeep = Qt.binding(() => Theme.crust)

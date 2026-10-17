@@ -133,7 +133,7 @@ static void recursiveUnprotect(const std::string &path, mode_t dirMode, mode_t f
 int main(int argc, char *argv[])
 {
     if (argc < 3) {
-        std::cerr << "Usage: bubble-vault-helper <command> <path> [args...]\n";
+        std::cerr << "Usage: kastrafiles-vault-helper <command> <path> [args...]\n";
         return 1;
     }
 

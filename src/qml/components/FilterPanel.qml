@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import Bubble
+import Kastrafiles
 
 Rectangle {
     id: root

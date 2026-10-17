@@ -15,10 +15,10 @@ static void unlockChattr(const QString &path)
 {
     // Try setuid helper first
     const QStringList helperCandidates = {
-        QCoreApplication::applicationDirPath() + "/bubble-vault-helper",
-        "/usr/local/bin/bubble-vault-helper",
-        "/usr/bin/bubble-vault-helper",
-        QDir::homePath() + "/.local/bin/bubble-vault-helper"
+        QCoreApplication::applicationDirPath() + "/kastrafiles-vault-helper",
+        "/usr/local/bin/kastrafiles-vault-helper",
+        "/usr/bin/kastrafiles-vault-helper",
+        QDir::homePath() + "/.local/bin/kastrafiles-vault-helper"
     };
     for (const auto &helper : helperCandidates) {
         if (QFile::exists(helper)) {
@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
             crypto.encryptFile(filePath, dataKey, newIv);
 
             // Update database
-            QString dbPath = QDir::homePath() + "/.config/bubble/vault.db";
+            QString dbPath = QDir::homePath() + "/.config/kastrafiles/vault.db";
             VaultDatabase db;
             if (db.open(dbPath)) {
                 VaultEntry entry = db.findByPath(filePath);
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
 
             // Extended attribute
             QByteArray pathBa = filePath.toLocal8Bit();
-            setxattr(pathBa.constData(), "user.bubble.locked", "1", 1, 0);
+            setxattr(pathBa.constData(), "user.kastrafiles.locked", "1", 1, 0);
         }
         return 0;
     }
@@ -150,21 +150,21 @@ int main(int argc, char *argv[])
     bool allUsers = args.contains("--all-users");
 
     if (allUsers) {
-        std::cout << "Destroying Bubble vaults for all users..." << std::endl;
+        std::cout << "Destroying Kastrafiles vaults for all users..." << std::endl;
         QDir homeDir("/home");
         const QStringList userDirs = homeDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
         for (const QString &user : userDirs) {
-            QString vaultDb = QString("/home/%1/.config/bubble/vault.db").arg(user);
+            QString vaultDb = QString("/home/%1/.config/kastrafiles/vault.db").arg(user);
             processVaultDb(vaultDb);
         }
         // Also check root's home
-        processVaultDb("/root/.config/bubble/vault.db");
+        processVaultDb("/root/.config/kastrafiles/vault.db");
     } else {
         // Current user
-        QString configPath = QDir::homePath() + "/.config/bubble/vault.db";
+        QString configPath = QDir::homePath() + "/.config/kastrafiles/vault.db";
         processVaultDb(configPath);
     }
 
-    std::cout << "Bubble vault cleanup complete." << std::endl;
+    std::cout << "Kastrafiles vault cleanup complete." << std::endl;
     return 0;
 }

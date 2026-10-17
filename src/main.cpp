@@ -25,7 +25,7 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <unistd.h>
-#ifdef BUBBLE_HAS_KWINDOWSYSTEM
+#ifdef KASTRAFILES_HAS_KWINDOWSYSTEM
 #include <KWindowEffects>
 #endif
 
@@ -66,16 +66,16 @@ namespace {
 
 // Printed by --help. Qt's QCommandLineParser would need a constructed
 // QCoreApplication, and both --help and --version have to answer before the
-// Wayland check below — `bubble --help` over SSH should still work.
+// Wayland check below — `kastrafiles --help` over SSH should still work.
 void printUsage()
 {
     printf(
-        "Bubble %s — a Qt6/QML file manager for Wayland\n"
+        "Kastrafiles %s — a Qt6/QML file manager for Wayland\n"
         "\n"
         "Usage:\n"
-        "  bubble [options] [path]\n"
+        "  kastrafiles [options] [path]\n"
         "\n"
-        "With no path, launching Bubble while it is already running opens\n"
+        "With no path, launching Kastrafiles while it is already running opens\n"
         "another window. With a path, the running window gains a tab instead,\n"
         "unless --new-window is given.\n"
         "\n"
@@ -85,11 +85,11 @@ void printUsage()
         "  -v, --version      Show the version and exit.\n"
         "\n"
         "Environment:\n"
-        "  BUBBLE_TIMING=1    Print startup timings to stderr.\n"
-        "  BUBBLE_MSAA=2|4    Enable full-window multisampling (costly).\n"
+        "  KASTRAFILES_TIMING=1    Print startup timings to stderr.\n"
+        "  KASTRAFILES_MSAA=2|4    Enable full-window multisampling (costly).\n"
         "\n"
         "Qt options such as -style are accepted and passed through.\n",
-        BUBBLE_VERSION);
+        KASTRAFILES_VERSION);
 }
 
 // The platform theme publishes its own UI font once the QPA plugin has
@@ -129,12 +129,12 @@ private:
     bool m_applying = false;
 };
 
-const char kExampleTheme[] = R"(# Bubble theme sample.
+const char kExampleTheme[] = R"(# Kastrafiles theme sample.
 #
 # Copy this file to "mytheme.toml" in this directory, edit the colours, then put
 #     [general]
 #     theme = "mytheme"
-# in ~/.config/bubble/config.toml, or pick it in Settings. Every *.toml here is
+# in ~/.config/kastrafiles/config.toml, or pick it in Settings. Every *.toml here is
 # listed there, and a file here shadows the bundled theme of the same name.
 #
 # Any key you leave out keeps its built-in default.
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
             return 0;
         }
         if (a == "-v" || a == "--version") {
-            printf("bubble %s\n", BUBBLE_VERSION);
+            printf("kastrafiles %s\n", KASTRAFILES_VERSION);
             return 0;
         }
     }
@@ -212,12 +212,12 @@ int main(int argc, char *argv[])
         "qt.svg.warning=false");
 
     // Keep the default path fast. Full-window MSAA is expensive on many
-    // Wayland/compositor stacks; opt in with BUBBLE_MSAA=2/4 if wanted.
+    // Wayland/compositor stacks; opt in with KASTRAFILES_MSAA=2/4 if wanted.
     QSurfaceFormat fmt;
-    fmt.setSamples(qMax(0, qEnvironmentVariableIntValue("BUBBLE_MSAA")));
+    fmt.setSamples(qMax(0, qEnvironmentVariableIntValue("KASTRAFILES_MSAA")));
     QSurfaceFormat::setDefaultFormat(fmt);
 
-    // Bubble is a Wayland-only application (wl-copy clipboard, compositor
+    // Kastrafiles is a Wayland-only application (wl-copy clipboard, compositor
     // integration, KWin blur effects). Detect a non-Wayland session before
     // Qt tries to load the wayland QPA plugin so users see an actionable
     // message instead of the cryptic "Failed to create wl_display" error.
@@ -226,17 +226,17 @@ int main(int argc, char *argv[])
         const char *session = sessionType.isEmpty() ? "unknown" : sessionType.constData();
         fprintf(stderr,
                 "\n"
-                "Bubble: no Wayland display available (XDG_SESSION_TYPE=%s).\n"
+                "Kastrafiles: no Wayland display available (XDG_SESSION_TYPE=%s).\n"
                 "\n"
-                "Bubble only supports Wayland sessions. Your current session\n"
+                "Kastrafiles only supports Wayland sessions. Your current session\n"
                 "appears to be X11 or does not expose $WAYLAND_DISPLAY.\n"
                 "\n"
-                "To run Bubble:\n"
+                "To run Kastrafiles:\n"
                 "  * Log out and pick a Wayland session at the login screen\n"
                 "    (e.g. \"Ubuntu on Wayland\", GNOME on Wayland, Hyprland, KDE\n"
                 "    Plasma Wayland).\n"
                 "  * If running via Flatpak, also grant Wayland socket access:\n"
-                "      flatpak override --user --socket=wayland io.github.tattvaorg.Bubble\n"
+                "      flatpak override --user --socket=wayland io.github.tejaskhanna989.Kastrafiles\n"
                 "\n",
                 session);
         return 1;
@@ -269,14 +269,14 @@ int main(int argc, char *argv[])
     }
 
     QGuiApplication app(argc, argv);
-    app.setApplicationName("Bubble");
-    app.setOrganizationName("bubble");
-    const QString customAppId = qEnvironmentVariable("BUBBLE_APP_ID");
-    app.setDesktopFileName(!customAppId.isEmpty() ? customAppId : QStringLiteral("io.github.tattvaorg.Bubble"));
+    app.setApplicationName("Kastrafiles");
+    app.setOrganizationName("kastrafiles");
+    const QString customAppId = qEnvironmentVariable("KASTRAFILES_APP_ID");
+    app.setDesktopFileName(!customAppId.isEmpty() ? customAppId : QStringLiteral("io.github.tejaskhanna989.Kastrafiles"));
 
-    // Startup timing: opt-in via BUBBLE_TIMING=1 so normal runs stay quiet.
+    // Startup timing: opt-in via KASTRAFILES_TIMING=1 so normal runs stay quiet.
     // Prints milliseconds from QGuiApplication construction at each phase.
-    const bool timingEnabled = (qEnvironmentVariableIntValue("BUBBLE_TIMING") != 0);
+    const bool timingEnabled = (qEnvironmentVariableIntValue("KASTRAFILES_TIMING") != 0);
     QElapsedTimer startupTimer;
     startupTimer.start();
     auto mark = [&](const char *label) {
@@ -286,8 +286,8 @@ int main(int argc, char *argv[])
     };
     mark("QGuiApplication ready");
 
-    // Launching Bubble again opens another independent window, the way every
-    // other file manager behaves. The one exception is `bubble <path>` while
+    // Launching Kastrafiles again opens another independent window, the way every
+    // other file manager behaves. The one exception is `kastrafiles <path>` while
     // an instance is already running: that forwards the path over a per-uid
     // unix socket so the running window gains a tab, which is what desktop
     // launchers and `xdg-open` rely on. `--new-window` opts out of even that.
@@ -295,12 +295,12 @@ int main(int argc, char *argv[])
     // The process that manages to listen on the socket is the "primary" one:
     // it answers those handoffs and owns the saved session (tabs + geometry).
     // Extra windows are ordinary processes that share nothing with it.
-    const QString bubbleSocketName = QStringLiteral("bubble-%1").arg(static_cast<uint>(getuid()));
+    const QString kastrafilesSocketName = QStringLiteral("kastrafiles-%1").arg(static_cast<uint>(getuid()));
     QLocalServer *ipcServer = nullptr;
     bool isPrimary = false;
     {
         QLocalSocket probe;
-        probe.connectToServer(bubbleSocketName);
+        probe.connectToServer(kastrafilesSocketName);
         const bool instanceRunning = probe.waitForConnected(150);
 
         if (instanceRunning && !newWindow && !initialOpenPath.isEmpty()) {
@@ -318,11 +318,11 @@ int main(int argc, char *argv[])
             // would block listen(). Two instances starting at the exact same
             // moment can both land here; the second simply wins the socket,
             // which costs nothing but the first one's handoff duty.
-            QLocalServer::removeServer(bubbleSocketName);
+            QLocalServer::removeServer(kastrafilesSocketName);
             ipcServer = new QLocalServer(&app);
             ipcServer->setSocketOptions(QLocalServer::UserAccessOption);
-            if (!ipcServer->listen(bubbleSocketName))
-                qWarning() << "Bubble: single-instance IPC listen failed:" << ipcServer->errorString();
+            if (!ipcServer->listen(kastrafilesSocketName))
+                qWarning() << "Kastrafiles: single-instance IPC listen failed:" << ipcServer->errorString();
             isPrimary = ipcServer->isListening();
         }
     }
@@ -346,9 +346,9 @@ int main(int argc, char *argv[])
         return font;
     };
 
-    // Ensure config directory exists (~/.config/bubble)
+    // Ensure config directory exists (~/.config/kastrafiles)
     const QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-    const QString configDir = homeDir + "/.config/bubble";
+    const QString configDir = homeDir + "/.config/kastrafiles";
     QDir().mkpath(configDir);
     const QString configPath = configDir + "/config.toml";
 
@@ -363,22 +363,22 @@ int main(int argc, char *argv[])
 
     const QString appDir = QCoreApplication::applicationDirPath();
     const QString dataDir = firstExistingDir({
-        QDir(appDir).filePath("../share/bubble"),
-        QDir(appDir).filePath("../../share/bubble"),
-        QStringLiteral(BUBBLE_DATA_DIR),
-        QStringLiteral(BUBBLE_SOURCE_DIR),
+        QDir(appDir).filePath("../share/kastrafiles"),
+        QDir(appDir).filePath("../../share/kastrafiles"),
+        QStringLiteral(KASTRAFILES_DATA_DIR),
+        QStringLiteral(KASTRAFILES_SOURCE_DIR),
     });
 
     QStringList themeSearchPaths = {
         QDir(appDir).filePath("../themes"),
         QDir(appDir).filePath("../../themes"),
-        QStringLiteral(BUBBLE_DATA_DIR) + "/themes",
-        QStringLiteral(BUBBLE_SOURCE_DIR) + "/themes",
+        QStringLiteral(KASTRAFILES_DATA_DIR) + "/themes",
+        QStringLiteral(KASTRAFILES_SOURCE_DIR) + "/themes",
     };
     if (!dataDir.isEmpty())
         themeSearchPaths.prepend(QDir(dataDir).filePath("themes"));
 
-    // User themes come first so ~/.config/bubble/themes
+    // User themes come first so ~/.config/kastrafiles/themes
     // can add to or override the bundled set.
     QStringList themeDirs;
     const QString userThemesDir = configDir + "/themes";
@@ -396,9 +396,9 @@ int main(int argc, char *argv[])
     if (!themesDir.isEmpty())
         themeDirs.append(themesDir);
     if (dataDir.isEmpty())
-        qWarning() << "Bubble: unable to locate data directory";
+        qWarning() << "Kastrafiles: unable to locate data directory";
     if (themesDir.isEmpty())
-        qWarning() << "Bubble: unable to locate themes directory";
+        qWarning() << "Kastrafiles: unable to locate themes directory";
 
     // Only used the first time, while config.toml has no "theme": pick the
     // bundled theme that matches the desktop rather than always landing on the
@@ -577,13 +577,13 @@ int main(int argc, char *argv[])
 
     // Prefer the installed data layout, but keep source-tree fallbacks for dev builds.
     if (!dataDir.isEmpty()) {
-        engine.addImportPath(dataDir);                           // Bubble module
+        engine.addImportPath(dataDir);                           // Kastrafiles module
         engine.addImportPath(QDir(dataDir).filePath("src/qml")); // Quill module
     }
-    engine.addImportPath(QStringLiteral(BUBBLE_DATA_DIR));
-    engine.addImportPath(QStringLiteral(BUBBLE_DATA_DIR "/src/qml"));
-    engine.addImportPath(QStringLiteral(BUBBLE_SOURCE_DIR));
-    engine.addImportPath(QStringLiteral(BUBBLE_SOURCE_DIR "/src/qml"));
+    engine.addImportPath(QStringLiteral(KASTRAFILES_DATA_DIR));
+    engine.addImportPath(QStringLiteral(KASTRAFILES_DATA_DIR "/src/qml"));
+    engine.addImportPath(QStringLiteral(KASTRAFILES_SOURCE_DIR));
+    engine.addImportPath(QStringLiteral(KASTRAFILES_SOURCE_DIR "/src/qml"));
 
     // Set icon theme so QIcon::fromTheme() works (e.g. for drag pixmaps)
     QIcon::setThemeName(config->iconTheme());
@@ -635,18 +635,18 @@ int main(int argc, char *argv[])
 
     QString installedMainQml;
     if (!dataDir.isEmpty()) {
-        const QString candBubble = QDir(dataDir).filePath(QStringLiteral("Bubble/qml/Main.qml"));
-        installedMainQml = QFile::exists(candBubble) ? candBubble : QString();
+        const QString candKastrafiles = QDir(dataDir).filePath(QStringLiteral("Kastrafiles/qml/Main.qml"));
+        installedMainQml = QFile::exists(candKastrafiles) ? candKastrafiles : QString();
     }
 
     // The qrc module is qmlcachegen-compiled, so loading it skips parsing
     // ~60 QML files on every launch. The installed on-disk copy is only the
     // fallback for a qrc payload that turns out incomplete.
     mark("engine.load start");
-    engine.loadFromModule("Bubble", "Main");
+    engine.loadFromModule("Kastrafiles", "Main");
     if (engine.rootObjects().isEmpty() && !installedMainQml.isEmpty()
         && QFile::exists(installedMainQml)) {
-        qWarning() << "Bubble: embedded QML module failed to load, falling back to" << installedMainQml;
+        qWarning() << "Kastrafiles: embedded QML module failed to load, falling back to" << installedMainQml;
         engine.load(QUrl::fromLocalFile(installedMainQml));
     }
     mark("engine.load done");
@@ -671,7 +671,7 @@ int main(int argc, char *argv[])
         if (!window)
             return;
 
-#ifdef BUBBLE_HAS_KWINDOWSYSTEM
+#ifdef KASTRAFILES_HAS_KWINDOWSYSTEM
         // KWin blur only shows through translucent content; Hyprland keeps
         // using compositor rules against the same transparent window surface.
         const bool blurRequested = config->transparencyEnabled();

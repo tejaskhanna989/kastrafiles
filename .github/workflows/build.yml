@@ -14,9 +14,20 @@ on:
 permissions:
   contents: read
 
+env:
+  APP_ID: io.github.tejaskhanna989.Kastrafiles
+
 jobs:
-  build:
+  # ─────────────────────────────────────────────────────────────────────
+  # Ubuntu: build + test, then produce the AppImage, .deb and .rpm.
+  # ─────────────────────────────────────────────────────────────────────
+  build-linux:
+    name: Linux (AppImage / .deb / .rpm)
     runs-on: ubuntu-24.04
+    env:
+      # Produce distributable packages on main / tags / manual runs, but only
+      # compile + test on pull requests (keeps PR feedback fast).
+      SHOULD_PACKAGE: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout
@@ -44,19 +55,11 @@ jobs:
             fi
           }
 
-          cmake_ver=$(grep -E '^project\(bubble VERSION' CMakeLists.txt \
-                       | sed -E 's/^project\(bubble VERSION ([0-9.]+).*/\1/')
+          cmake_ver=$(grep -E '^project\(kastrafiles VERSION' CMakeLists.txt \
+                       | sed -E 's/^project\(kastrafiles VERSION ([0-9.]+).*/\1/')
           check "CMakeLists.txt" "$VERSION" "$cmake_ver"
 
-          flatpak_tag=$(python3 -c '
-          import re
-          t = open("io.github.tattvaorg.Bubble.yml").read()
-          m = re.search(r"url:\s*https://github\.com/TattvaOrg/Bubble\.git\s*\n(?:[^\n]*\n)*?\s*tag:\s*(v\d+\.\d+\.\d+)", t)
-          print(m.group(1) if m else "")
-          ')
-          check "flatpak manifest bubble tag" "$TAG" "$flatpak_tag"
-
-          if grep -q "<release version=\"$VERSION\"" dist/io.github.tattvaorg.Bubble.metainfo.xml; then
+          if grep -q "<release version=\"$VERSION\"" dist/io.github.tejaskhanna989.Kastrafiles.metainfo.xml; then
             echo "OK   metainfo.xml <release> entry present"
           else
             echo "::error::metainfo.xml is missing a <release version=\"$VERSION\"> entry"
@@ -74,11 +77,10 @@ jobs:
         uses: jurplel/install-qt-action@v4
         with:
           version: '6.7.3'
-          # Note: 'qtwayland' is NOT a separate module for linux desktop in
-          # aqtinstall — on Linux the Wayland platform plugin (libqwayland-
-          # generic.so / libqwayland-egl.so) ships with the base Qt install.
-          # We force linuxdeploy-plugin-qt to bundle it via EXTRA_PLATFORM_PLUGINS
-          # further below.
+          # On Linux the Wayland platform plugin ships with the base Qt install;
+          # we force linuxdeploy-plugin-qt to bundle it via EXTRA_PLATFORM_PLUGINS
+          # further below (after building the matching QtWayland integration
+          # plugins from source).
           modules: 'qtshadertools'
 
       - name: Install system dependencies
@@ -105,23 +107,19 @@ jobs:
             psmisc \
             gvfs \
             dbus \
-            p7zip-full
+            p7zip-full \
+            dpkg-dev \
+            rpm
 
       - name: Build QtWayland from source
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        # aqtinstall's Linux desktop Qt 6.7.3 ships the QtWayland libs
-        # but omits the wayland-graphics-integration-client plugins
-        # (libqt-plugin-wayland-egl.so etc.), so Qt can't find a client
-        # buffer integration at runtime and the bundled AppImage aborts
-        # on any Wayland session with "Available client buffer
-        # integrations: QList()". Build qtwayland from the matching
-        # source tag against the aqt Qt and install into its prefix so
-        # linuxdeploy-plugin-qt picks up the plugins naturally.
+        if: env.SHOULD_PACKAGE == 'true'
+        # aqtinstall's Linux Qt 6.7.3 omits the wayland-graphics-integration-client
+        # plugins, so Qt can't find a client buffer integration at runtime and a
+        # bundled AppImage aborts on Wayland. Build qtwayland from the matching
+        # source tag against the aqt Qt so linuxdeploy-plugin-qt bundles it.
         run: |
           QT_PREFIX=$(qmake6 -query QT_INSTALL_PREFIX 2>/dev/null || qmake -query QT_INSTALL_PREFIX)
           echo "Qt prefix: $QT_PREFIX"
-          # Use the GitHub mirror — code.qt.io has intermittent network
-          # issues from GitHub Actions runners.
           git clone --depth 1 --branch v6.7.3 https://github.com/qt/qtwayland.git qtwayland-src
           cmake -S qtwayland-src -B qtwayland-src/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
@@ -134,34 +132,40 @@ jobs:
 
       - name: Build
         run: |
-          # BUBBLE_ENABLE_QML_CACHEGEN=ON forces qmlcachegen to compile QML
-          # files into the binary. The NO_CACHEGEN code path in Qt 6.7.3 was
-          # silently dropping qml/components/SettingsPanel.qml from the qrc;
-          # cachegen uses a different rcc path that's more reliable.
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX=/usr \
-            -DBUBBLE_DATA_DIR=/usr/share/bubble \
-            -DBUBBLE_ENABLE_QML_CACHEGEN=ON
+            -DKASTRAFILES_DATA_DIR=/usr/share/kastrafiles \
+            -DKASTRAFILES_ENABLE_QML_CACHEGEN=ON
           cmake --build build --parallel
 
       - name: Run tests
         env:
           QT_QPA_PLATFORM: offscreen
-        # The trash tests talk to gvfsd over the session bus, hence
-        # dbus-run-session. Tests that need a tool the runner lacks skip,
-        # which is why p7zip-full is installed above: without it every
-        # archive test skips and the suite goes green having run none.
         run: |
           dbus-run-session -- ctest --test-dir build --output-on-failure --parallel 4 --timeout 300
 
+      # ── .deb / .rpm via CPack ────────────────────────────────────────
+      - name: Package .deb and .rpm (CPack)
+        if: env.SHOULD_PACKAGE == 'true'
+        run: |
+          set -euo pipefail
+          cd build
+          cpack -G DEB
+          cpack -G RPM
+          cd ..
+          ls -la build/*.deb build/*.rpm
+          mkdir -p packages
+          cp build/*.deb build/*.rpm packages/
+
+      # ── AppImage ─────────────────────────────────────────────────────
       - name: Install into AppDir
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: env.SHOULD_PACKAGE == 'true'
         run: |
           DESTDIR="$GITHUB_WORKSPACE/AppDir" cmake --install build
 
       - name: Download linuxdeploy and Qt plugin
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: env.SHOULD_PACKAGE == 'true'
         run: |
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/1-alpha-20250213-2/linuxdeploy-x86_64.AppImage
           wget -q https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/1-alpha-20250213-1/linuxdeploy-plugin-qt-x86_64.AppImage
@@ -174,20 +178,18 @@ jobs:
           chmod +x linuxdeploy-x86_64.AppImage linuxdeploy-plugin-qt-x86_64.AppImage
 
       - name: Build AppImage
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: env.SHOULD_PACKAGE == 'true'
         env:
           TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'continuous' }}
           # Force linuxdeploy-plugin-qt to bundle the Wayland platform plugin
-          # alongside xcb. Without this, Ubuntu's GNOME Wayland session loads
-          # an empty platform and the window renders black.
+          # alongside xcb; otherwise a GNOME/Hyprland Wayland session renders black.
           EXTRA_PLATFORM_PLUGINS: libqwayland-generic.so;libqwayland-egl.so
           QML_SOURCES_PATHS: src/qml
         run: |
           set -euo pipefail
           QT_PLUGIN_DIR=$(qmake6 -query QT_INSTALL_PLUGINS 2>/dev/null || qmake -query QT_INSTALL_PLUGINS)
 
-          # Only SQLite is needed for Bubble; remove unused drivers (mimer, psql, odbc)
-          # that pull missing external libraries (e.g. libmimerapi.so) on CI runners.
+          # Only SQLite is needed; remove unused SQL drivers that pull missing libs.
           if [ -d "$QT_PLUGIN_DIR/sqldrivers" ]; then
             find "$QT_PLUGIN_DIR/sqldrivers" -type f ! -name "libqsqlite.so" -delete || true
           fi
@@ -195,8 +197,8 @@ jobs:
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             --plugin qt \
-            --desktop-file dist/io.github.tattvaorg.Bubble.desktop \
-            --icon-file dist/io.github.tattvaorg.Bubble.svg
+            --desktop-file dist/io.github.tejaskhanna989.Kastrafiles.desktop \
+            --icon-file dist/io.github.tejaskhanna989.Kastrafiles.svg
 
           deploy_deps_args=()
           for plugin_dir in \
@@ -213,74 +215,166 @@ jobs:
             fi
           done
 
-          echo "=== AppDir/usr/plugins ==="
-          ls AppDir/usr/plugins || true
-          echo "=== wayland-graphics-integration-client ==="
-          ls AppDir/usr/plugins/wayland-graphics-integration-client/ || true
-
           scripts/prune-appdir.sh AppDir
 
-          OUTPUT="Bubble-${TAG_NAME}-x86_64.AppImage" \
+          OUTPUT="Kastrafiles-${TAG_NAME}-x86_64.AppImage" \
           ./linuxdeploy-x86_64.AppImage \
             --appdir AppDir \
             "${deploy_deps_args[@]}" \
             --output appimage
 
-          cp "Bubble-${TAG_NAME}-x86_64.AppImage" "Bubble-x86_64.AppImage"
+          cp "Kastrafiles-${TAG_NAME}-x86_64.AppImage" "Kastrafiles-x86_64.AppImage"
 
       - name: Verify bundled Wayland client integrations
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: env.SHOULD_PACKAGE == 'true'
         run: |
           test -d AppDir/usr/plugins/wayland-graphics-integration-client
           test -n "$(ls -A AppDir/usr/plugins/wayland-graphics-integration-client)"
 
       - name: Smoke-test AppImage
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        if: env.SHOULD_PACKAGE == 'true'
         env:
           TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'continuous' }}
-        # Boot the freshly-built AppImage on the offscreen QPA platform and
-        # capture its stderr. We're not trying to render anything — we just
-        # want Qt to load every QML type referenced from Main.qml so that
-        # any "is not a type" / "qrc:... not found" / "QQmlApplicationEngine
-        # failed to load component" failure aborts the release before it
-        # ships. v0.4.14 shipped a broken AppImage exactly because we had no
-        # such gate; never again.
+        # Boot the AppImage on the offscreen QPA platform so any "is not a type"
+        # / QML load failure aborts the release before it ships.
         run: |
-          chmod +x "Bubble-${TAG_NAME}-x86_64.AppImage"
+          chmod +x "Kastrafiles-${TAG_NAME}-x86_64.AppImage"
           set +e
-          # offscreen platform needs no display; software RHI dodges Mesa.
           QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software \
-            timeout 10 "./Bubble-${TAG_NAME}-x86_64.AppImage" \
+            timeout 10 "./Kastrafiles-${TAG_NAME}-x86_64.AppImage" \
             > smoke.stdout 2> smoke.stderr &
           SMOKE_PID=$!
-          # Give the QML engine ~5s to parse Main.qml and instantiate every
-          # component, then SIGTERM it. Any QML load failure will already be
-          # on stderr by then.
           sleep 5
           kill -TERM $SMOKE_PID 2>/dev/null || true
           wait $SMOKE_PID 2>/dev/null || true
           set -e
-          echo "=== smoke stdout ==="
-          cat smoke.stdout || true
-          echo "=== smoke stderr ==="
-          cat smoke.stderr || true
+          echo "=== smoke stdout ==="; cat smoke.stdout || true
+          echo "=== smoke stderr ==="; cat smoke.stderr || true
           if grep -E "is not a type|failed to load component|QQmlApplicationEngine failed|TypeError:|Unable to assign|Aborted \(core dumped\)|Segmentation fault|Failed to initialize graphics backend|Failed to create RHI" smoke.stderr; then
             echo "Smoke test FAILED: AppImage cannot load its QML."
             exit 1
           fi
           echo "Smoke test passed."
 
-      - name: Upload AppImage artifact
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+      - name: Upload Linux artifacts
+        if: env.SHOULD_PACKAGE == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: bubble-appimage
-          path: Bubble-*.AppImage
+          name: kastrafiles-linux
+          path: |
+            Kastrafiles-*.AppImage
+            packages/*.deb
+            packages/*.rpm
           if-no-files-found: error
 
+  # ─────────────────────────────────────────────────────────────────────
+  # Arch Linux: build + produce the .pkg.tar.zst.
+  # ─────────────────────────────────────────────────────────────────────
+  build-arch:
+    name: Arch Linux (.pkg.tar.zst)
+    runs-on: ubuntu-24.04
+    container: archlinux:latest
+    env:
+      SHOULD_PACKAGE: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      - name: Install git (required by actions/checkout)
+        run: |
+          pacman -Syu --noconfirm --needed git
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel \
+            cmake \
+            ninja \
+            gcc \
+            qt6-base \
+            qt6-declarative \
+            qt6-svg \
+            qt6-wayland \
+            glib2 \
+            argon2 \
+            openssl \
+            libglvnd \
+            wayland \
+            libxkbcommon \
+            kwindowsystem \
+            desktop-file-utils \
+            shared-mime-info \
+            bsdtar
+
+      - name: Build
+        run: |
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DKASTRAFILES_DATA_DIR=/usr/share/kastrafiles \
+            -DKASTRAFILES_ENABLE_QML_CACHEGEN=ON \
+            -DBUILD_TESTS=OFF
+          cmake --build build --parallel
+
+      - name: Package (.pkg.tar.zst)
+        if: env.SHOULD_PACKAGE == 'true'
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -E '^project\(kastrafiles VERSION' CMakeLists.txt \
+                    | sed -E 's/^project\(kastrafiles VERSION ([0-9.]+).*/\1/')
+          PKGREL=1
+          STAGE="$PWD/pkgstage"
+          cmake --install build --prefix "$STAGE/usr"
+          SIZE=$(du -sk "$STAGE" | cut -f1)
+          cat > "$STAGE/.PKGINFO" <<EOF
+          pkgname = kastrafiles
+          pkgbase = kastrafiles
+          pkgver = $VERSION-$PKGREL
+          pkgdesc = A fast, modern Wayland file manager with Miller columns and a built-in secure vault
+          url = https://github.com/tejaskhanna989/Kastrafiles
+          builddate = $(date +%s)
+          packager = Kastrafiles CI
+          size = ${SIZE}K
+          arch = x86_64
+          license = GPL-3.0-or-later
+          depend = glib2
+          depend = gvfs
+          depend = kwindowsystem
+          depend = qt6-base
+          depend = qt6-declarative
+          depend = qt6-svg
+          depend = qt6-wayland
+          depend = xdg-utils
+          depend = openssl
+          depend = argon2
+          EOF
+          # Strip the indentation that YAML's block scalar preserved.
+          sed -i 's/^[[:space:]]*//' "$STAGE/.PKGINFO"
+          # Name entries explicitly: packing "." would store metadata as
+          # "./.PKGINFO", which pacman rejects as "missing package metadata".
+          bsdtar -czf "kastrafiles-$VERSION-$PKGREL-x86_64.pkg.tar.zst" -C "$STAGE" .PKGINFO usr
+          # Validate the package parses before uploading it.
+          pacman -Qp "kastrafiles-$VERSION-$PKGREL-x86_64.pkg.tar.zst"
+          ls -la kastrafiles-*.pkg.tar.zst
+
+      - name: Upload Arch artifact
+        if: env.SHOULD_PACKAGE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: kastrafiles-arch
+          path: kastrafiles-*.pkg.tar.zst
+          if-no-files-found: error
+
+  # ─────────────────────────────────────────────────────────────────────
+  # Publish a GitHub Release (tag or continuous) with all Linux installers.
+  # ─────────────────────────────────────────────────────────────────────
   release:
+    name: Release
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-    needs: build
+    needs: [build-linux, build-arch]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -289,122 +383,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Download AppImage artifact
+      - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          name: bubble-appimage
+          path: dist
+          merge-multiple: true
 
-      # ─────────────────────────────────────────────────────────────────
-      # Flatpak publishing: build, sign with GPG, upload the ostree repo
-      # Gated on tag pushes and presence of signing secrets.
-      - name: Install Flatpak tooling
-        if: startsWith(github.ref, 'refs/tags/v') && env.GPG_KEY != ''
-        env:
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-        run: |
-          sudo apt-get install -y flatpak flatpak-builder
-          flatpak remote-add --user --if-not-exists flathub \
-              https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install -y --user flathub \
-              org.kde.Platform//6.9 org.kde.Sdk//6.9
-
-      - name: Import GPG signing key
-        if: startsWith(github.ref, 'refs/tags/v') && env.GPG_KEY != ''
-        env:
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.FLATPAK_GPG_PASSPHRASE }}
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          mkdir -p "$HOME/.gnupg"
-          chmod 700 "$HOME/.gnupg"
-
-          cat > "$HOME/.gnupg/gpg-agent.conf" <<'EOF'
-          allow-loopback-pinentry
-          allow-preset-passphrase
-          default-cache-ttl 7200
-          max-cache-ttl 7200
-          EOF
-          cat > "$HOME/.gnupg/gpg.conf" <<'EOF'
-          use-agent
-          pinentry-mode loopback
-          EOF
-          gpg-connect-agent reloadagent /bye
-
-          printf '%s' "$GPG_KEY" | gpg --batch --import
-          gpg --list-secret-keys --keyid-format=long
-
-          echo test | gpg --batch --yes \
-              --pinentry-mode loopback \
-              --passphrase "${GPG_PASSPHRASE:-}" \
-              --local-user "$GPG_FINGERPRINT" \
-              --clearsign > /dev/null
-
-      - name: Build and sign Flatpak repo
-        if: startsWith(github.ref, 'refs/tags/v') && env.GPG_KEY != ''
-        env:
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          flatpak-builder --force-clean --user \
-            --repo=flatpak-repo \
-            --gpg-sign="$GPG_FINGERPRINT" \
-            --default-branch=stable \
-            flatpak-build \
-            io.github.tattvaorg.Bubble.yml
-          flatpak build-update-repo \
-            --generate-static-deltas \
-            --gpg-sign="$GPG_FINGERPRINT" \
-            flatpak-repo
-
-      - name: Build Flatpak bundle (release asset)
-        if: startsWith(github.ref, 'refs/tags/v') && env.GPG_KEY != ''
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-          GPG_KEY: ${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}
-          GPG_FINGERPRINT: ${{ secrets.FLATPAK_GPG_FINGERPRINT }}
-        run: |
-          flatpak build-bundle flatpak-repo \
-            "Bubble-${TAG_NAME}-x86_64.flatpak" \
-            io.github.tattvaorg.Bubble stable \
-            --gpg-sign="$GPG_FINGERPRINT"
-
-      - name: Publish ostree repo to bubble-flatpak-repo
-        if: startsWith(github.ref, 'refs/tags/v') && env.DEPLOY_KEY != ''
-        env:
-          DEPLOY_KEY: ${{ secrets.FLATPAK_REPO_DEPLOY_KEY }}
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -t ed25519,rsa,ecdsa github.com >> ~/.ssh/known_hosts 2>/dev/null
-
-          if ! ssh-keygen -l -f ~/.ssh/id_ed25519 > /dev/null; then
-            echo "Deploy key failed to parse."
-            exit 1
-          fi
-
-          git clone git@github.com:TattvaOrg/bubble-flatpak-repo.git pages
-          cd pages
-          git config user.name "bubble release bot"
-          git config user.email "release-bot@bubble.local"
-
-          rm -rf repo
-          cp -a ../flatpak-repo repo
-
-          git add -A repo/
-          if git diff --cached --quiet; then
-            echo "No changes to publish"
-          else
-            git commit -m "Publish io.github.tattvaorg.Bubble ${TAG_NAME}"
-            git push origin main
-          fi
+      - name: List downloaded installers
+        run: find dist -type f | sort
 
       - name: Prepare release notes
         env:
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
+          mkdir -p out
+          # Flatten artifacts into out/
+          find dist -type f -exec cp -v {} out/ \;
           if [ "$IS_TAG" = "true" ]; then
             git fetch --force --no-tags origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}" || true
             git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" > release-notes.md || true
@@ -413,18 +407,14 @@ jobs:
             fi
           else
             cat <<EOF > release-notes.md
-          ### Bubble Continuous Build
+          ### Kastrafiles Continuous Build
           Automated pre-release build from branch \`main\` (commit \`${GITHUB_SHA:0:7}\`).
 
-          #### Download
-          - [Bubble-continuous-x86_64.AppImage](https://github.com/${GITHUB_REPOSITORY}/releases/download/continuous/Bubble-continuous-x86_64.AppImage)
-          - [Bubble-x86_64.AppImage](https://github.com/${GITHUB_REPOSITORY}/releases/download/continuous/Bubble-x86_64.AppImage)
-
-          #### Quick Run
-          \`\`\`bash
-          chmod +x Bubble-continuous-x86_64.AppImage
-          ./Bubble-continuous-x86_64.AppImage
-          \`\`\`
+          #### Installers
+          - **AppImage** (any distro): \`chmod +x Kastrafiles-continuous-x86_64.AppImage && ./Kastrafiles-continuous-x86_64.AppImage\`
+          - **Debian/Ubuntu**: \`sudo apt install ./kastrafiles_*.deb\`
+          - **Fedora/RHEL/openSUSE**: \`sudo dnf install ./kastrafiles-*.rpm\`
+          - **Arch Linux**: \`sudo pacman -U ./kastrafiles-*.pkg.tar.zst\`
           EOF
           fi
           test -s release-notes.md
@@ -433,18 +423,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'continuous' }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Bubble {0}', github.ref_name) || 'Bubble Continuous Build' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Kastrafiles {0}', github.ref_name) || 'Kastrafiles Continuous Build' }}
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-          files: |
-            Bubble-*.AppImage
-            Bubble-*.flatpak
+          files: out/*
           body_path: release-notes.md
-
-      - name: Trigger website rebuild
-        if: startsWith(github.ref, 'refs/tags/v') && env.SITE_DISPATCH_TOKEN != ''
-        env:
-          GH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
-          SITE_DISPATCH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}
-        run: |
-          gh api repos/TattvaOrg/bubble-site/dispatches \
-            -f event_type=new-release || true

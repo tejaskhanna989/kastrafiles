@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Shapes
-import Bubble
+import Kastrafiles
 
 Shape {
     id: root

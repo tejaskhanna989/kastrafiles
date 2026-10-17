@@ -8,7 +8,7 @@
 // directory is defined once here rather than spelled out in each of them.
 inline QString cloudMountsBaseDir()
 {
-    static const QString dir = QDir::homePath() + QStringLiteral("/.local/share/bubble/mounts");
+    static const QString dir = QDir::homePath() + QStringLiteral("/.local/share/kastrafiles/mounts");
     return dir;
 }
 

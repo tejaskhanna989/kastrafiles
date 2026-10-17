@@ -1,12 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Window
-import Bubble
+import Kastrafiles
 import Quill as Q
 
 Window {
     id: root
-    title: "Bubble Settings"
+    title: "Kastrafiles Settings"
     flags: Qt.Dialog | Qt.FramelessWindowHint
     color: "transparent"
 
@@ -1345,7 +1345,7 @@ Window {
 
             Text {
                 Layout.fillWidth: true
-                text: "When visiting your Home directory, Bubble can display a dedicated partitioned panel for quick access and drag-and-drop pinning to your Starred collection."
+                text: "When visiting your Home directory, Kastrafiles can display a dedicated partitioned panel for quick access and drag-and-drop pinning to your Starred collection."
                 color: Theme.subtext
                 font.pointSize: Theme.fontSmall
                 wrapMode: Text.WordWrap

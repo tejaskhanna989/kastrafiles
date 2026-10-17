@@ -1,10 +1,10 @@
 [Desktop Entry]
-Name=Bubble
+Name=Kastrafiles
 Comment=File manager for Wayland
-Exec=bubble %U
-Icon=io.github.tattvaorg.Bubble
+Exec=kastrafiles %U
+Icon=io.github.tejaskhanna989.Kastrafiles
 Terminal=false
 Type=Application
 Categories=System;FileManager;
 MimeType=inode/directory;
-StartupWMClass=bubble
+StartupWMClass=kastrafiles

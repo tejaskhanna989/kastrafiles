@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
-import Bubble
+import Kastrafiles
 
 // Custom context menu — Hyprland compositor handles blur via windowrule
 Item {
@@ -263,9 +263,9 @@ Item {
             : sourcePos.x - submenuBodyW - gap
         posX = Math.max(viewportMargin, Math.min(posX, winW - submenuW - viewportMargin))
 
-        var bubbleRadius = Math.min(Theme.radiusLarge, (submenuH / 2) - 1)
+        var kastrafilesRadius = Math.min(Theme.radiusLarge, (submenuH / 2) - 1)
         var pointerHalf = root._submenuPointerBase / 2
-        var pointerInset = bubbleRadius + pointerHalf + 2
+        var pointerInset = kastrafilesRadius + pointerHalf + 2
         var pointerMin = Math.max(pointerHalf + 2, pointerInset)
         var pointerMax = Math.max(pointerMin, submenuH - pointerInset)
         var preferredPointerCenter = Math.max(pointerMin,
@@ -515,7 +515,7 @@ Item {
         property real bodyHeight: submenuColumn.height + 12
         property real bodyX: root._submenuOpensRight ? root._submenuPointerDepth : 0
         property real bodyRight: bodyX + bodyWidth
-        property real bubbleRadius: Math.min(Theme.radiusLarge, (height / 2) - 1)
+        property real kastrafilesRadius: Math.min(Theme.radiusLarge, (height / 2) - 1)
         property real pointerHalf: root._submenuPointerBase / 2
         property real pointerTop: root._submenuPointerCenterY - pointerHalf
         property real pointerBottom: root._submenuPointerCenterY + pointerHalf
@@ -545,36 +545,36 @@ Item {
                 strokeWidth: 1
                 joinStyle: ShapePath.MiterJoin
                 capStyle: ShapePath.FlatCap
-                startX: submenuContainer.bodyX + submenuContainer.bubbleRadius
+                startX: submenuContainer.bodyX + submenuContainer.kastrafilesRadius
                 startY: 0.5
 
-                PathLine { x: submenuContainer.bodyRight - submenuContainer.bubbleRadius; y: 0.5 }
+                PathLine { x: submenuContainer.bodyRight - submenuContainer.kastrafilesRadius; y: 0.5 }
                 PathQuad {
                     x: submenuContainer.bodyRight - 0.5
-                    y: submenuContainer.bubbleRadius + 0.5
+                    y: submenuContainer.kastrafilesRadius + 0.5
                     controlX: submenuContainer.bodyRight - 0.5
                     controlY: 0.5
                 }
-                PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.height - submenuContainer.bubbleRadius - 0.5 }
+                PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.height - submenuContainer.kastrafilesRadius - 0.5 }
                 PathQuad {
-                    x: submenuContainer.bodyRight - submenuContainer.bubbleRadius
+                    x: submenuContainer.bodyRight - submenuContainer.kastrafilesRadius
                     y: submenuContainer.height - 0.5
                     controlX: submenuContainer.bodyRight - 0.5
                     controlY: submenuContainer.height - 0.5
                 }
-                PathLine { x: submenuContainer.bodyX + submenuContainer.bubbleRadius; y: submenuContainer.height - 0.5 }
+                PathLine { x: submenuContainer.bodyX + submenuContainer.kastrafilesRadius; y: submenuContainer.height - 0.5 }
                 PathQuad {
                     x: submenuContainer.bodyX + 0.5
-                    y: submenuContainer.height - submenuContainer.bubbleRadius - 0.5
+                    y: submenuContainer.height - submenuContainer.kastrafilesRadius - 0.5
                     controlX: submenuContainer.bodyX + 0.5
                     controlY: submenuContainer.height - 0.5
                 }
                 PathLine { x: submenuContainer.bodyX + 0.5; y: submenuContainer.pointerBottom }
                 PathLine { x: 0.5; y: root._submenuPointerCenterY }
                 PathLine { x: submenuContainer.bodyX + 0.5; y: submenuContainer.pointerTop }
-                PathLine { x: submenuContainer.bodyX + 0.5; y: submenuContainer.bubbleRadius + 0.5 }
+                PathLine { x: submenuContainer.bodyX + 0.5; y: submenuContainer.kastrafilesRadius + 0.5 }
                 PathQuad {
-                    x: submenuContainer.bodyX + submenuContainer.bubbleRadius
+                    x: submenuContainer.bodyX + submenuContainer.kastrafilesRadius
                     y: 0.5
                     controlX: submenuContainer.bodyX + 0.5
                     controlY: 0.5
@@ -592,36 +592,36 @@ Item {
                 strokeWidth: 1
                 joinStyle: ShapePath.MiterJoin
                 capStyle: ShapePath.FlatCap
-                startX: submenuContainer.bubbleRadius
+                startX: submenuContainer.kastrafilesRadius
                 startY: 0.5
 
-                PathLine { x: submenuContainer.bodyRight - submenuContainer.bubbleRadius; y: 0.5 }
+                PathLine { x: submenuContainer.bodyRight - submenuContainer.kastrafilesRadius; y: 0.5 }
                 PathQuad {
                     x: submenuContainer.bodyRight - 0.5
-                    y: submenuContainer.bubbleRadius + 0.5
+                    y: submenuContainer.kastrafilesRadius + 0.5
                     controlX: submenuContainer.bodyRight - 0.5
                     controlY: 0.5
                 }
                 PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.pointerTop }
                 PathLine { x: submenuContainer.width - 0.5; y: root._submenuPointerCenterY }
                 PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.pointerBottom }
-                PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.height - submenuContainer.bubbleRadius - 0.5 }
+                PathLine { x: submenuContainer.bodyRight - 0.5; y: submenuContainer.height - submenuContainer.kastrafilesRadius - 0.5 }
                 PathQuad {
-                    x: submenuContainer.bodyRight - submenuContainer.bubbleRadius
+                    x: submenuContainer.bodyRight - submenuContainer.kastrafilesRadius
                     y: submenuContainer.height - 0.5
                     controlX: submenuContainer.bodyRight - 0.5
                     controlY: submenuContainer.height - 0.5
                 }
-                PathLine { x: submenuContainer.bubbleRadius; y: submenuContainer.height - 0.5 }
+                PathLine { x: submenuContainer.kastrafilesRadius; y: submenuContainer.height - 0.5 }
                 PathQuad {
                     x: 0.5
-                    y: submenuContainer.height - submenuContainer.bubbleRadius - 0.5
+                    y: submenuContainer.height - submenuContainer.kastrafilesRadius - 0.5
                     controlX: 0.5
                     controlY: submenuContainer.height - 0.5
                 }
-                PathLine { x: 0.5; y: submenuContainer.bubbleRadius + 0.5 }
+                PathLine { x: 0.5; y: submenuContainer.kastrafilesRadius + 0.5 }
                 PathQuad {
-                    x: submenuContainer.bubbleRadius
+                    x: submenuContainer.kastrafilesRadius
                     y: 0.5
                     controlX: 0.5
                     controlY: 0.5

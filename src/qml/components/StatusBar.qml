@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Shapes
-import Bubble
+import Kastrafiles
 import Quill as Quill
 
 Rectangle {

@@ -43,7 +43,7 @@ VaultService::~VaultService()
         if (sess.pid > 0 && kill(static_cast<pid_t>(sess.pid), 0) == 0) {
             QStringList watcherArgs;
             watcherArgs << "--watch" << path << QString::number(sess.pid) << QString::fromLatin1(sess.dataKey.toBase64());
-            QProcess::startDetached("bubble-vault-destroy", watcherArgs);
+            QProcess::startDetached("kastrafiles-vault-destroy", watcherArgs);
             m_activeFileSessions.remove(path);
             m_activeSessions.remove(path);
         } else {
@@ -251,11 +251,11 @@ bool VaultService::isLocked(const QString &path) const
     }
 
     // Check extended attribute if accessible and not in active session:
-    // If the file is readable (e.g. newly created file with same name) and lacks user.bubble.locked
+    // If the file is readable (e.g. newly created file with same name) and lacks user.kastrafiles.locked
     // (errno == ENODATA), the original locked file was replaced.
     if (!isSessionUnlocked(path)) {
         char val[8] = {0};
-        ssize_t len = getxattr(path.toLocal8Bit().constData(), "user.bubble.locked", val, sizeof(val));
+        ssize_t len = getxattr(path.toLocal8Bit().constData(), "user.kastrafiles.locked", val, sizeof(val));
         if (len < 0 && errno == ENODATA) {
             const_cast<VaultService*>(this)->purgePath(path);
             return false;
@@ -1028,18 +1028,18 @@ bool VaultService::runHelper(const QStringList &args, bool allowElevation)
     QStringList candidates;
 
     // 1. System setuid locations (prioritized because they possess root capabilities)
-    candidates << QStringLiteral("/usr/local/bin/bubble-vault-helper")
-               << QStringLiteral("/usr/bin/bubble-vault-helper");
+    candidates << QStringLiteral("/usr/local/bin/kastrafiles-vault-helper")
+               << QStringLiteral("/usr/bin/kastrafiles-vault-helper");
 
     // 2. PATH resolution
-    QString pathExec = QStandardPaths::findExecutable(QStringLiteral("bubble-vault-helper"));
+    QString pathExec = QStandardPaths::findExecutable(QStringLiteral("kastrafiles-vault-helper"));
     if (!pathExec.isEmpty() && !candidates.contains(pathExec)) {
         candidates.append(pathExec);
     }
 
     // 3. Application dir and config dir
-    candidates << QCoreApplication::applicationDirPath() + QStringLiteral("/bubble-vault-helper")
-               << m_configDir + QStringLiteral("/bin/bubble-vault-helper");
+    candidates << QCoreApplication::applicationDirPath() + QStringLiteral("/kastrafiles-vault-helper")
+               << m_configDir + QStringLiteral("/bin/kastrafiles-vault-helper");
 
     // Prioritize any candidate with setuid root flag (S_ISUID and owned by root)
     QString bestHelper;
@@ -1151,7 +1151,7 @@ bool VaultService::ensureWritable(const QString &path)
 
 bool VaultService::setImmutable(const QString &path, bool immutable)
 {
-    if (qEnvironmentVariableIntValue("BUBBLE_TEST_MODE") == 1) {
+    if (qEnvironmentVariableIntValue("KASTRAFILES_TEST_MODE") == 1) {
         return true;
     }
 
@@ -1176,11 +1176,11 @@ bool VaultService::setExtendedAttribute(const QString &path, bool locked)
     QByteArray pathBa = path.toLocal8Bit();
     if (locked) {
         const char *val = "1";
-        if (setxattr(pathBa.constData(), "user.bubble.locked", val, 1, 0) != 0) {
+        if (setxattr(pathBa.constData(), "user.kastrafiles.locked", val, 1, 0) != 0) {
             // Note: some filesystems don't support user xattrs, non-fatal
         }
     } else {
-        removexattr(pathBa.constData(), "user.bubble.locked");
+        removexattr(pathBa.constData(), "user.kastrafiles.locked");
     }
     return true;
 }

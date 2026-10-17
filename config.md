@@ -1,6 +1,6 @@
-# Bubble Configuration & Ecosystem Guide
+# Kastrafiles Configuration & Ecosystem Guide
 
-Comprehensive guide for configuring **Bubble**, customizing themes, and integrating with Wayland compositors (such as **Lniri / Niri**, **Hyprland**, and **KDE Plasma**) for an optical liquid-glass aesthetic.
+Comprehensive guide for configuring **Kastrafiles**, customizing themes, and integrating with Wayland compositors (such as **Lniri / Niri**, **Hyprland**, and **KDE Plasma**) for an optical liquid-glass aesthetic.
 
 ---
 
@@ -30,9 +30,9 @@ Comprehensive guide for configuring **Bubble**, customizing themes, and integrat
 
 ## Configuration Overview
 
-Bubble is designed to be instantly configurable both via its graphical **Settings Panel** (`Ctrl+,` or the gear icon in the top-right toolbar) and directly via human-readable TOML files.
+Kastrafiles is designed to be instantly configurable both via its graphical **Settings Panel** (`Ctrl+,` or the gear icon in the top-right toolbar) and directly via human-readable TOML files.
 
-When Bubble is running, modifications saved in `config.toml` are automatically detected and reloaded live without needing to restart the application.
+When Kastrafiles is running, modifications saved in `config.toml` are automatically detected and reloaded live without needing to restart the application.
 
 ---
 
@@ -40,14 +40,14 @@ When Bubble is running, modifications saved in `config.toml` are automatically d
 
 | Path | Purpose |
 | :--- | :--- |
-| `~/.config/bubble/config.toml` | User configuration file |
-| `~/.config/bubble/config.toml.sample` | Auto-generated reference template containing all default keys and comments |
-| `~/.config/bubble/themes/` | User-defined custom TOML themes |
-| `/usr/share/bubble/themes/` | System-wide built-in themes |
-| `~/.config/bubble/folder_sort.json` | Per-folder sort memory state |
+| `~/.config/kastrafiles/config.toml` | User configuration file |
+| `~/.config/kastrafiles/config.toml.sample` | Auto-generated reference template containing all default keys and comments |
+| `~/.config/kastrafiles/themes/` | User-defined custom TOML themes |
+| `/usr/share/kastrafiles/themes/` | System-wide built-in themes |
+| `~/.config/kastrafiles/folder_sort.json` | Per-folder sort memory state |
 
 > [!NOTE]
-> When settings are updated from within Bubble's graphical UI, `config.toml` is written cleanly. The adjacent `config.toml.sample` is automatically updated on every launch to retain a complete, documented reference template.
+> When settings are updated from within Kastrafiles's graphical UI, `config.toml` is written cleanly. The adjacent `config.toml.sample` is automatically updated on every launch to retain a complete, documented reference template.
 
 ---
 
@@ -60,7 +60,7 @@ Below is a complete reference of all available tables and keys in `config.toml`.
 ```toml
 [general]
 # Active colour theme (theme name matching a TOML file without .toml).
-# If omitted or empty, Bubble follows system light/dark preference.
+# If omitted or empty, Kastrafiles follows system light/dark preference.
 theme = "liquid-light"
 
 # Themes used when toggling Dark Mode in Settings or via shortcut.
@@ -148,7 +148,7 @@ anim_curve_transition = "Bezier"
 ```toml
 [window]
 # Render client-side minimize, maximize, and close buttons.
-# When omitted, Bubble automatically detects if the compositor provides server-side decorations.
+# When omitted, Kastrafiles automatically detects if the compositor provides server-side decorations.
 # show_controls = false
 
 # Titlebar button ordering (":" separates left side from right side)
@@ -264,25 +264,25 @@ keyboard_shortcuts = "Ctrl+?"
 
 ## Liquid Glass Ecosystem & Compositor Integration
 
-Bubble features a dedicated **Liquid Glass Layout Engine** calibrated to match the optical aesthetics of modern frosted glass desktop environments (such as KDE Dolphin under Lniri's `kwin-glass` shader stack).
+Kastrafiles features a dedicated **Liquid Glass Layout Engine** calibrated to match the optical aesthetics of modern frosted glass desktop environments (such as KDE Dolphin under Lniri's `kwin-glass` shader stack).
 
 ### Architectural Behavior:
 - **Zero-Opacity Framing**: The sidebar, toolbar, and status bar have 0% background opacity (`opacity = 0.0`), eliminating harsh cutouts, divider lines, and inverse corner artifacts.
 - **Floating Elevated Card Container**: The active file view sits in an elevated floating card with `14px` border radius, a `1px` subtle ambient glass rim border, and `30%` view opacity.
-- **Dual-Pane Split View (`F3`)**: In split-view mode, Bubble renders twin floating frosted cards side-by-side with independent focus borders and clear visual separation.
+- **Dual-Pane Split View (`F3`)**: In split-view mode, Kastrafiles renders twin floating frosted cards side-by-side with independent focus borders and clear visual separation.
 
 ### Lniri / Niri (with kwin-glass)
 
-In `~/.config/niri/config.kdl`, add window rules for Bubble to activate hardware blur and rounded window clipping:
+In `~/.config/niri/config.kdl`, add window rules for Kastrafiles to activate hardware blur and rounded window clipping:
 
 ```kdl
 window-rule {
-    match app-id="io.github.tattvaorg.Bubble"
-    match app-id="io.github.soyeb_jim285.Bubble"
-    match app-id="bubble"
-    match app-id="Bubble"
-    match title="Bubble"
-    match title="Bubble Settings"
+    match app-id="io.github.tejaskhanna989.Kastrafiles"
+    match app-id="io.github.soyeb_jim285.Kastrafiles"
+    match app-id="kastrafiles"
+    match app-id="Kastrafiles"
+    match title="Kastrafiles"
+    match title="Kastrafiles Settings"
 
     clip-to-geometry true
     geometry-corner-radius 14
@@ -300,20 +300,20 @@ niri msg action load-config-file
 In `~/.config/hypr/hyprland.conf`:
 
 ```ini
-windowrulev2 = blur, class:^(bubble)$
-windowrulev2 = rounding 14, class:^(bubble)$
-windowrulev2 = noshadow, class:^(bubble)$
+windowrulev2 = blur, class:^(kastrafiles)$
+windowrulev2 = rounding 14, class:^(kastrafiles)$
+windowrulev2 = noshadow, class:^(kastrafiles)$
 ```
 
 ### KDE Plasma / KWin
 
-In KDE Plasma, ensure **Background Contrast** and **Blur** desktop effects are enabled in *System Settings -> Workspace Behavior -> Desktop Effects*. Window rules can be added via *System Settings -> Window Management -> Window Rules* targeting `bubble` to enforce background blur.
+In KDE Plasma, ensure **Background Contrast** and **Blur** desktop effects are enabled in *System Settings -> Workspace Behavior -> Desktop Effects*. Window rules can be added via *System Settings -> Window Management -> Window Rules* targeting `kastrafiles` to enforce background blur.
 
 ---
 
 ## The Liquid Themes: `liquid-light` & `liquid-dark`
 
-Bubble provides two official liquid themes pre-calibrated for optical glass environments:
+Kastrafiles provides two official liquid themes pre-calibrated for optical glass environments:
 
 1. **`liquid-light`**: High-key translucent glass theme with subtle specular borders and clean typography designed for light wallpapers.
 2. **`liquid-dark`**: Deep ambient obsidian glass theme with luminous selections and soft rim highlights designed for dark and colorful wallpapers.
@@ -330,13 +330,13 @@ noise_opacity = 0.0
 border_width = 1
 ```
 
-Switch between them dynamically in `~/.config/bubble/config.toml` or using the Dark Mode switch in the Settings dialog (`Ctrl+,`).
+Switch between them dynamically in `~/.config/kastrafiles/config.toml` or using the Dark Mode switch in the Settings dialog (`Ctrl+,`).
 
 ---
 
 ## Creating Custom Themes
 
-To create a custom theme, place a `.toml` file inside `~/.config/bubble/themes/<name>.toml`:
+To create a custom theme, place a `.toml` file inside `~/.config/kastrafiles/themes/<name>.toml`:
 
 ```toml
 [theme]
@@ -368,4 +368,4 @@ border_opacity = 0.12
 border_width = 1
 ```
 
-When `sidebar_opacity` and `toolbar_opacity` are set to `0.0`, Bubble's QML engine automatically activates floating elevated card mode. If set to standard opacity (e.g. `0.9` or `1.0`), Bubble smoothly falls back to the classic unified panel layout.
+When `sidebar_opacity` and `toolbar_opacity` are set to `0.0`, Kastrafiles's QML engine automatically activates floating elevated card mode. If set to standard opacity (e.g. `0.9` or `1.0`), Kastrafiles smoothly falls back to the classic unified panel layout.

@@ -3,11 +3,11 @@
 # main.cpp. Everything here needs real processes and a real unix socket, so it
 # lives as a script rather than a QtTest case.
 #
-# Skips (exit 77) when there is no Wayland session, since Bubble refuses to
+# Skips (exit 77) when there is no Wayland session, since Kastrafiles refuses to
 # start without one — that is the case on CI runners.
 set -u
 
-BUBBLE=${1:?usage: tst_instance_launch.sh /path/to/bubble}
+KASTRAFILES=${1:?usage: tst_instance_launch.sh /path/to/kastrafiles}
 
 [ -n "${WAYLAND_DISPLAY:-}" ] || { echo "SKIP: no WAYLAND_DISPLAY"; exit 77; }
 
@@ -22,15 +22,15 @@ PIDS=()
 trap cleanup EXIT
 
 # QLocalServer names the instance socket per-uid inside QDir::tempPath(), which
-# follows TMPDIR. Pointing TMPDIR at the sandbox keeps any Bubble the developer
+# follows TMPDIR. Pointing TMPDIR at the sandbox keeps any Kastrafiles the developer
 # is running on its own socket, so it never takes part in these handoffs.
 export TMPDIR="$SANDBOX/tmp"
 mkdir -p "$TMPDIR"
 
 export HOME="$SANDBOX/home"
-mkdir -p "$HOME/.config/bubble"
-SESSION="$HOME/.config/bubble/session.json"
-SOCKET="$TMPDIR/bubble-$(id -u)"
+mkdir -p "$HOME/.config/kastrafiles"
+SESSION="$HOME/.config/kastrafiles/session.json"
+SOCKET="$TMPDIR/kastrafiles-$(id -u)"
 
 failures=0
 
@@ -39,7 +39,7 @@ failures=0
 # command substitution, whose subshell would discard the PIDS append and leak
 # every window this test starts.
 spawn() {
-    "$BUBBLE" "$@" >/dev/null 2>&1 &
+    "$KASTRAFILES" "$@" >/dev/null 2>&1 &
     SPAWNED=$!
     PIDS+=("$SPAWNED")
     sleep 3
@@ -81,8 +81,8 @@ check "first launch owns the IPC socket" "$(socket_up && echo yes || echo no)" "
 # The session file only appears once something changes, hence the missing-file
 # tolerance on the "before" count.
 tabs_before=$(tabs)
-"$BUBBLE" /etc >/dev/null 2>&1
-check "bubble <path> exits 0 while an instance runs" "$?" "0"
+"$KASTRAFILES" /etc >/dev/null 2>&1
+check "kastrafiles <path> exits 0 while an instance runs" "$?" "0"
 wait_for 10 more_tabs_than "$tabs_before"
 check "handoff added a tab to the primary" \
       "$(more_tabs_than "$tabs_before" && echo yes || echo no)" "yes"
@@ -110,7 +110,7 @@ check "crash leaves a stale socket behind" "$(socket_up && echo yes || echo no)"
 spawn; revived=$SPAWNED
 wait_for 20 socket_up
 check "launch after crash starts despite the stale socket" "$(yesno "$revived")" "yes"
-"$BUBBLE" /etc >/dev/null 2>&1
+"$KASTRAFILES" /etc >/dev/null 2>&1
 check "revived instance answers handoffs" "$?" "0"
 
 [ "$failures" -eq 0 ] || { echo "$failures check(s) failed"; exit 1; }

@@ -1,12 +1,12 @@
 #!/bin/sh
-# Build a demo tree for screen recordings: one file of every kind Bubble can
+# Build a demo tree for screen recordings: one file of every kind Kastrafiles can
 # preview, thumbnail, or report metadata for.
 #
 #   ./scripts/make-demo-files.sh            # ~/Demo
 #   ./scripts/make-demo-files.sh ~/Showcase # custom root
 #
 # Missing optional tools are skipped with a note; nothing here is required to
-# build Bubble. Rerunning wipes and rebuilds the tree.
+# build Kastrafiles. Rerunning wipes and rebuilds the tree.
 set -eu
 
 root="${1:-$HOME/Demo}"
@@ -74,7 +74,7 @@ if have exiftool && [ -f "$root/Pictures/panorama.jpg" ]; then
 		-DateTimeOriginal="2025:06:14 18:32:10" \
 		-GPSLatitude=23.7808 -GPSLatitudeRef=N \
 		-GPSLongitude=90.4108 -GPSLongitudeRef=E \
-		-Artist="Bubble demo" -ImageDescription="Rooftop at golden hour" \
+		-Artist="Kastrafiles demo" -ImageDescription="Rooftop at golden hour" \
 		"$root/Pictures/panorama.jpg"
 else
 	skip "EXIF metadata" perl-image-exiftool
@@ -106,7 +106,7 @@ echo "documents"
 if have groff; then
 	groff -Tpdf -ms > "$root/Documents/handbook.pdf" <<'EOF'
 .TL
-Bubble Field Handbook
+Kastrafiles Field Handbook
 .AU
 Demo Assets
 .NH
@@ -154,7 +154,7 @@ syntax-highlight.
 ## Snippet
 
 ```bash
-bubble ~/Demo --new-window
+kastrafiles ~/Demo --new-window
 ```
 
 > Previews render through `bat` when it is installed, plain text otherwise.
@@ -177,12 +177,12 @@ EOF
 } > "$root/Documents/transfers.csv"
 
 {
-	echo "2025-06-14 18:31:02 INFO  bubble: session restored, 3 tabs"
+	echo "2025-06-14 18:31:02 INFO  kastrafiles: session restored, 3 tabs"
 	echo "2025-06-14 18:31:02 DEBUG previewservice: bat found at /usr/bin/bat"
 	echo "2025-06-14 18:31:07 WARN  udisks2: no polkit agent on the session bus"
 	echo "2025-06-14 18:31:19 INFO  fileops: copy started, 214 files, 1.8 GiB"
 	echo "2025-06-14 18:31:44 ERROR gio: mount smb://nas/media failed: timeout"
-} > "$root/Documents/bubble.log"
+} > "$root/Documents/kastrafiles.log"
 
 # --- Code: a real git repo, so the status overlays light up -----------------
 echo "code"
@@ -214,7 +214,7 @@ cat > "$root/Code/index.html" <<'EOF'
   </head>
   <body>
     <main class="card">
-      <h1>Bubble</h1>
+      <h1>Kastrafiles</h1>
       <p>A fast, keyboard-friendly file manager for Wayland.</p>
     </main>
   </body>
@@ -251,7 +251,7 @@ target="${1:?usage: deploy.sh <host>}"
 
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
-rsync -a --info=progress2 build/src/bubble "$target:/usr/local/bin/"
+rsync -a --info=progress2 build/src/kastrafiles "$target:/usr/local/bin/"
 EOF
 chmod +x "$root/Code/deploy.sh"
 
@@ -269,7 +269,7 @@ EOF
 
 cat > "$root/Code/package.json" <<'EOF'
 {
-  "name": "bubble-demo",
+  "name": "kastrafiles-demo",
   "version": "1.0.0",
   "private": true,
   "scripts": {

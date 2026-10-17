@@ -11,7 +11,7 @@
 VaultDatabase::VaultDatabase(QObject *parent)
     : QObject(parent)
 {
-    m_connectionName = QString("bubble_vault_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+    m_connectionName = QString("kastrafiles_vault_%1").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
 }
 
 VaultDatabase::~VaultDatabase()

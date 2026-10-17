@@ -1035,7 +1035,7 @@ QString temporaryRenamePathFor(const QString &sourcePath)
     QString tempPath;
     do {
         tempPath = joinLocation(parentLocation(sourcePath),
-                                QStringLiteral(".bubble-rename-%1.tmp")
+                                QStringLiteral(".kastrafiles-rename-%1.tmp")
                                     .arg(QUuid::createUuid().toString(QUuid::WithoutBraces)));
     } while (pathExistsSync(tempPath));
 
@@ -1860,7 +1860,7 @@ void FileOperations::openFileWith(const QString &path, const QString &desktopFil
         program = qEnvironmentVariable("TERMINAL", QStringLiteral("kitty"));
         args = QStringList{QStringLiteral("-e")} + command;
     } else {
-        // `gio launch` comes from glib2, which Bubble already requires; the
+        // `gio launch` comes from glib2, which Kastrafiles already requires; the
         // gtk-launch this used to call lives in gtk3 and is often absent.
         QString hostEntryPath = entryPath;
         if (hostEntryPath.startsWith(QLatin1String("/run/host/")))
@@ -2069,7 +2069,7 @@ void FileOperations::runCustomAction(const QString &command, const QStringList &
     }
 }
 
-// Launch a second, independent Bubble window. `--new-window` makes the child
+// Launch a second, independent Kastrafiles window. `--new-window` makes the child
 // skip the single-instance handoff (and the shared session file), so the two
 // windows coexist instead of the new process forwarding to this one.
 void FileOperations::openNewWindow(const QString &dirPath)
@@ -2842,7 +2842,7 @@ QString FileOperations::conflictBackupPath(const QString &targetPath) const
 {
     QString cacheRoot = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
     if (cacheRoot.isEmpty())
-        cacheRoot = QDir::homePath() + "/.cache/bubble";
+        cacheRoot = QDir::homePath() + "/.cache/kastrafiles";
 
     QDir backupDir(cacheRoot + "/conflict-backups");
     backupDir.mkpath(".");

@@ -3,36 +3,36 @@
  "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
  "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
 <policyconfig>
-  <vendor>Bubble File Manager</vendor>
-  <vendor_url>https://github.com/TattvaOrg/Bubble</vendor_url>
+  <vendor>Kastrafiles File Manager</vendor>
+  <vendor_url>https://github.com/tejaskhanna989/Kastrafiles</vendor_url>
 
-  <action id="org.bubble.vault.helper">
+  <action id="org.kastrafiles.vault.helper">
     <description>Protect, lock or unlock vault files</description>
-    <message>Bubble requires administrator authentication to lock or modify protected files and folders.</message>
+    <message>Kastrafiles requires administrator authentication to lock or modify protected files and folders.</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/bin/bubble-vault-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/bin/kastrafiles-vault-helper</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 
-  <action id="org.bubble.vault.helper.usr">
+  <action id="org.kastrafiles.vault.helper.usr">
     <description>Protect, lock or unlock vault files</description>
-    <message>Bubble requires administrator authentication to lock or modify protected files and folders.</message>
+    <message>Kastrafiles requires administrator authentication to lock or modify protected files and folders.</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>
       <allow_active>auth_admin_keep</allow_active>
     </defaults>
-    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/bubble-vault-helper</annotate>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/kastrafiles-vault-helper</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
 
-  <action id="org.bubble.chattr">
+  <action id="org.kastrafiles.chattr">
     <description>Protect or unprotect locked file</description>
-    <message>Bubble needs elevated permissions to protect locked files with immutable flags.</message>
+    <message>Kastrafiles needs elevated permissions to protect locked files with immutable flags.</message>
     <defaults>
       <allow_any>auth_admin</allow_any>
       <allow_inactive>auth_admin</allow_inactive>

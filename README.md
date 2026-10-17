@@ -1,12 +1,12 @@
 <div align="center">
 
-<img src="dist/io.github.tattvaorg.Bubble.svg" width="200" alt="Bubble Logo"/>
+<img src="dist/io.github.tejaskhanna989.Kastrafiles.svg" width="200" alt="Kastrafiles Logo"/>
 
 **A fast, modern Wayland file manager with Miller columns and a built-in Secure Vault.**
 
-[![Release](https://img.shields.io/github/v/release/TattvaOrg/Bubble?style=flat-square&color=emerald)](https://github.com/TattvaOrg/Bubble/releases)
-[![Build](https://img.shields.io/github/actions/workflow/status/TattvaOrg/Bubble/build.yml?style=flat-square)](https://github.com/TattvaOrg/Bubble/actions)
-[![GitHub Release](https://img.shields.io/github/v/release/TattvaOrg/Bubble?style=flat-square&color=blue)](https://github.com/TattvaOrg/Bubble/releases)
+[![Release](https://img.shields.io/github/v/release/tejaskhanna989/Kastrafiles?style=flat-square&color=emerald)](https://github.com/tejaskhanna989/Kastrafiles/releases)
+[![Build](https://img.shields.io/github/actions/workflow/status/tejaskhanna989/Kastrafiles/build.yml?style=flat-square)](https://github.com/tejaskhanna989/Kastrafiles/actions)
+[![GitHub Release](https://img.shields.io/github/v/release/tejaskhanna989/Kastrafiles?style=flat-square&color=blue)](https://github.com/tejaskhanna989/Kastrafiles/releases)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](http://makeapullrequest.com)
 [![Platform](https://img.shields.io/badge/Platform-Wayland-purple?style=flat-square&logo=wayland&logoColor=white)](https://wayland.freedesktop.org/)
 [![OS - Linux](https://img.shields.io/badge/OS-Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://www.kernel.org/)
@@ -19,15 +19,15 @@
 [Theming](#-theming--customization) •
 [Compositor & Glass](#-compositor-integration-hyprland-niri--lniri)
 
-<img src="docs/screenshots/bubble.png">
-<img width="983" height="599" alt="bubble-str" src="https://github.com/user-attachments/assets/245c44e5-5e83-47dd-a0a6-1e3366ed68a0" />
+<img src="docs/screenshots/kastrafiles.png">
+<img width="983" height="599" alt="kastrafiles-str" src="https://github.com/user-attachments/assets/245c44e5-5e83-47dd-a0a6-1e3366ed68a0" />
 
 
 ---
 
 </div>
 
-Bubble is a lightweight, responsive Qt6/QML desktop file manager engineered natively for Wayland and Hyprland. Combining **macOS Finder-style Miller columns**, buttery-smooth kinetic scrolling, and **AES-256 encrypted file vaults**, Bubble offers the speed of a keyboard-driven workflow with the polish of a modern desktop utility.
+Kastrafiles is a lightweight, responsive Qt6/QML desktop file manager engineered natively for Wayland and Hyprland. Combining **macOS Finder-style Miller columns**, buttery-smooth kinetic scrolling, and **AES-256 encrypted file vaults**, Kastrafiles offers the speed of a keyboard-driven workflow with the polish of a modern desktop utility.
 
 ---
 
@@ -39,7 +39,7 @@ Bubble is a lightweight, responsive Qt6/QML desktop file manager engineered nati
 Run the official installer and pick your preferred method (1 or 2):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/install.sh | bash
 ```
 
 ### 2. Direct One-Liners
@@ -47,15 +47,15 @@ curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/install.sh | 
 Choose directly between prebuilt AppImage or compiling from source:
 
 #### Option 1: Prebuilt AppImage (Recommended)
-Downloads the prebuilt binary, installs `bubble` to `~/.local/bin`, and configures desktop integration without needing build tools:
+Downloads the prebuilt binary, installs `kastrafiles` to `~/.local/bin`, and configures desktop integration without needing build tools:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/install.sh | bash -s -- 1
+curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/install.sh | bash -s -- 1
 ```
 
 #### Option 2: Compile from Source
 Fetches the source code, resolves dependencies, and builds natively with CMake & Ninja:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/install.sh | bash -s -- 2
+curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/install.sh | bash -s -- 2
 ```
 
 **Additional Installer Flags:**
@@ -68,26 +68,41 @@ curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/install.sh | 
 
 
 
-### 3. Complete Uninstallation & Wipeout
+### 3. Distribution Packages (CI-built)
 
-To completely wipe out Bubble, including all binaries, desktop integrations, configuration, cache, and cryptographically shred all locked vault files:
+Every push to `main` and every release tag builds these Linux installers with GitHub Actions (no Windows builds):
+
+| Format | Distro | Install command |
+| ------ | ------ | --------------- |
+| `.AppImage` | Any (recommended) | `chmod +x Kastrafiles-*.AppImage && ./Kastrafiles-*.AppImage` |
+| `.deb` | Debian / Ubuntu | `sudo apt install ./kastrafiles_*.deb` |
+| `.rpm` | Fedora / RHEL / openSUSE | `sudo dnf install ./kastrafiles-*.rpm` |
+| `.pkg.tar.zst` | Arch Linux | `sudo pacman -U ./kastrafiles-*.pkg.tar.zst` |
+
+Grab the latest artifacts from the [GitHub Releases](https://github.com/tejaskhanna989/Kastrafiles/releases) page (the `continuous` pre-release is rebuilt on every merge to `main`).
+
+
+
+### 4. Complete Uninstallation & Wipeout
+
+To completely wipe out Kastrafiles, including all binaries, desktop integrations, configuration, cache, and cryptographically shred all locked vault files:
 
 ```bash
 # One-liner remote uninstaller
-curl -fsSL https://raw.githubusercontent.com/TattvaOrg/Bubble/main/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/uninstall.sh | bash
 
 # Or run locally from cloned repository
 ./uninstall.sh
 ```
 
 > [!WARNING]
-> The uninstaller prompts once for confirmation (`Are you sure you want to completely wipe Bubble and all locked files? [y/N]`) and wipes everything clean. Pass `-y` to run non-interactively.
+> The uninstaller prompts once for confirmation (`Are you sure you want to completely wipe Kastrafiles and all locked files? [y/N]`) and wipes everything clean. Pass `-y` to run non-interactively.
 
 ---
 
 ## Secure File & Folder Vault
 
-Bubble includes a built-in cryptographic vault that lets you lock sensitive files and directories directly from the file manager with zero complex setup.
+Kastrafiles includes a built-in cryptographic vault that lets you lock sensitive files and directories directly from the file manager with zero complex setup.
 *Lock files instantly from context menus or with a single keyboard shortcut*
 
 </div>
@@ -97,7 +112,7 @@ Bubble includes a built-in cryptographic vault that lets you lock sensitive file
 - **One-Key Lock/Unlock (`Ctrl+Shift+L`)**: Select any file or folder and press `Ctrl+Shift+L` (or right-click → **Lock/Unlock**) to secure it with a password.
 - **Authenticated Encryption**: Backed by **AES-256-GCM** authenticated encryption with **Argon2id** key derivation to prevent brute-force attacks.
 - **Root & Tamper Prevention**: Locked items are placed in strict permission lockdown (`0000`) and protected by Linux kernel immutable flags (`+i`), preventing deletion, renaming, or modification even under `sudo`.
-- **Intelligent Auto-Relocking**: When you unlock a file to view or edit it, Bubble monitors the active editing session in the background and automatically re-encrypts and locks it when you're finished.
+- **Intelligent Auto-Relocking**: When you unlock a file to view or edit it, Kastrafiles monitors the active editing session in the background and automatically re-encrypts and locks it when you're finished.
 - **Visual Status Indicators**: Locked files display a secure badge in both detailed and grid views.
 - **Ghost-Lock & Corruption Protection**: Automatic integrity checks verify HMAC/GCM tags before decryption to guard against corruption or tampered data.
 
@@ -122,7 +137,7 @@ Bubble includes a built-in cryptographic vault that lets you lock sensitive file
 
 ## Keyboard Shortcuts
 
-Bubble is designed for efficient keyboard-first navigation:
+Kastrafiles is designed for efficient keyboard-first navigation:
 
 ### Navigation & Views
 | Shortcut | Action |
@@ -165,10 +180,10 @@ Bubble is designed for efficient keyboard-first navigation:
 
 ## Theming & Customization
 
-Bubble features a modular TOML-based theme engine with hot-reloading on save.
+Kastrafiles features a modular TOML-based theme engine with hot-reloading on save.
 
 ```
-~/.config/bubble/
+~/.config/kastrafiles/
 ├── config.toml           # User preferences and keybindings
 └── themes/               # Custom user themes (*.toml)
 ```
@@ -178,7 +193,7 @@ Bubble features a modular TOML-based theme engine with hot-reloading on save.
 - **Rose Pine**: Main (dark), Moon (dim), & Dawn (light)
 
 ### Custom Colors
-Create your own theme file in `~/.config/bubble/themes/my-theme.toml`:
+Create your own theme file in `~/.config/kastrafiles/themes/my-theme.toml`:
 
 ```toml
 [colors]
@@ -192,13 +207,13 @@ warning = "#f9e2af"
 error   = "#f38ba8"
 ```
 
-Switch themes inside the app via **Settings (`Ctrl+,`)** or set `theme = "my-theme"` in `~/.config/bubble/config.toml`. Changes apply immediately without restarting.
+Switch themes inside the app via **Settings (`Ctrl+,`)** or set `theme = "my-theme"` in `~/.config/kastrafiles/config.toml`. Changes apply immediately without restarting.
 
 ---
 
 ## Compositor Integration (Lniri)
 
-Bubble features native support for Wayland compositor background effects including blur, contrast, and **Lniri's fluidmorphism / liquid-glass shaders** across the entire file manager window (sidebar, navigation toolbar, tabs, and file views).
+Kastrafiles features native support for Wayland compositor background effects including blur, contrast, and **Lniri's fluidmorphism / liquid-glass shaders** across the entire file manager window (sidebar, navigation toolbar, tabs, and file views).
 
 ### Lniri (Liquid Glass & Fluidmorphism)
 
@@ -206,10 +221,10 @@ To enable liquid glass in Lniri, add this window rule to `~/.config/niri/config.
 
 ```kdl
 window-rule {
-    match app-id="io.github.tattvaorg.Bubble"
-    match app-id="io.github.soyeb_jim285.Bubble"
-    match app-id="bubble"
-    match app-id="Bubble"
+    match app-id="io.github.tejaskhanna989.Kastrafiles"
+    match app-id="io.github.soyeb_jim285.Kastrafiles"
+    match app-id="kastrafiles"
+    match app-id="Kastrafiles"
 
     open-floating true
     default-column-width { proportion 0.72; }
@@ -246,14 +261,14 @@ window-rule {
 ```
 
 > [!TIP]
-> - Both `match app-id="Bubble"` and `match app-id="io.github.tattvaorg.Bubble"` (as well as legacy `io.github.soyeb_jim285.Bubble`) match automatically. If your environment requires a specific custom Wayland `app-id`, specify `BUBBLE_APP_ID=<your-id> bubble`.
-> - Transparency level and container transparency can be toggled and finely adjusted inside Bubble in **Settings (`Ctrl+,`)** under **Appearance**.
+> - Both `match app-id="Kastrafiles"` and `match app-id="io.github.tejaskhanna989.Kastrafiles"` (as well as legacy `io.github.soyeb_jim285.Kastrafiles`) match automatically. If your environment requires a specific custom Wayland `app-id`, specify `KASTRAFILES_APP_ID=<your-id> kastrafiles`.
+> - Transparency level and container transparency can be toggled and finely adjusted inside Kastrafiles in **Settings (`Ctrl+,`)** under **Appearance**.
 
 ---
 
 ## Architecture
 
-Bubble is architected into three distinct layers:
+Kastrafiles is architected into three distinct layers:
 
 1. **Frontend (QML / QtQuick)**: Modern declarative UI with custom Lucide SVG vector iconography and fluid animations.
 2. **Backend (C++20 & Qt6)**: High-performance `QAbstractItemModel` engines, multithreaded directory watchers, and background worker threads.
@@ -323,25 +338,25 @@ node_vault_pipeline -->|"persists and invokes"| node_vault_storage
 node_sidebar_models -->|"mounts devices"| node_external_access
 node_file_state -.->|"browses mounted sources"| node_external_access
 
-click node_cmake "https://github.com/tattvaorg/bubble/blob/main/CMakeLists.txt"
-click node_src_cmake "https://github.com/tattvaorg/bubble/blob/main/src/CMakeLists.txt"
-click node_startup "https://github.com/tattvaorg/bubble/blob/main/src/main.cpp"
-click node_shell "https://github.com/tattvaorg/bubble/blob/main/src/qml/Main.qml"
-click node_file_views "https://github.com/tattvaorg/bubble/blob/main/src/qml/views/FileViewContainer.qml"
-click node_file_state "https://github.com/tattvaorg/bubble/blob/main/src/models/filesystemmodel.cpp"
-click node_sidebar_models "https://github.com/tattvaorg/bubble/blob/main/src/models/bookmarkmodel.cpp"
-click node_search_models "https://github.com/tattvaorg/bubble/blob/main/src/models/searchresultsmodel.cpp"
-click node_file_operations "https://github.com/tattvaorg/bubble/blob/main/src/services/fileoperations.cpp"
-click node_transfer_worker "https://github.com/tattvaorg/bubble/blob/main/src/services/giotransferworker.cpp"
-click node_clipboard_undo_trash "https://github.com/tattvaorg/bubble/blob/main/src/services/clipboardmanager.cpp"
-click node_preview_service "https://github.com/tattvaorg/bubble/blob/main/src/services/previewservice.cpp"
-click node_preview_providers "https://github.com/tattvaorg/bubble/blob/main/src/providers/thumbnailprovider.cpp"
-click node_metadata_git "https://github.com/tattvaorg/bubble/blob/main/src/services/metadataextractor.cpp"
-click node_search_service "https://github.com/tattvaorg/bubble/blob/main/src/services/searchservice.cpp"
-click node_vault_pipeline "https://github.com/tattvaorg/bubble/blob/main/src/services/vaultservice.cpp"
-click node_vault_storage "https://github.com/tattvaorg/bubble/blob/main/src/services/vaultdatabase.cpp"
-click node_external_access "https://github.com/tattvaorg/bubble/blob/main/src/models/devicemodel.cpp"
-click node_app_state "https://github.com/tattvaorg/bubble/blob/main/src/services/configmanager.cpp"
+click node_cmake "https://github.com/tejaskhanna989/kastrafiles/blob/main/CMakeLists.txt"
+click node_src_cmake "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/CMakeLists.txt"
+click node_startup "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/main.cpp"
+click node_shell "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/qml/Main.qml"
+click node_file_views "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/qml/views/FileViewContainer.qml"
+click node_file_state "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/models/filesystemmodel.cpp"
+click node_sidebar_models "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/models/bookmarkmodel.cpp"
+click node_search_models "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/models/searchresultsmodel.cpp"
+click node_file_operations "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/fileoperations.cpp"
+click node_transfer_worker "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/giotransferworker.cpp"
+click node_clipboard_undo_trash "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/clipboardmanager.cpp"
+click node_preview_service "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/previewservice.cpp"
+click node_preview_providers "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/providers/thumbnailprovider.cpp"
+click node_metadata_git "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/metadataextractor.cpp"
+click node_search_service "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/searchservice.cpp"
+click node_vault_pipeline "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/vaultservice.cpp"
+click node_vault_storage "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/vaultdatabase.cpp"
+click node_external_access "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/models/devicemodel.cpp"
+click node_app_state "https://github.com/tejaskhanna989/kastrafiles/blob/main/src/services/configmanager.cpp"
 
 classDef toneNeutral fill:#f8fafc,stroke:#334155,stroke-width:1.5px,color:#0f172a
 classDef toneBlue fill:#dbeafe,stroke:#2563eb,stroke-width:1.5px,color:#172554
@@ -372,4 +387,10 @@ Contributions, bug reports, and suggestions are welcome!
 
 ## Credit
 
-- Thank Soyeb-jim for his [hyperfm](https://github.com/soyeb-jim285/hyprfm) , because as a base we use hyprefm's cpp core and ui to build a bubble on it. 
+- Thank Soyeb-jim for his [hyperfm](https://github.com/soyeb-jim285/hyprfm) , because as a base we use hyprefm's cpp core and ui to build a kastrafiles on it. 
+
+## License
+
+Kastrafiles is free software licensed under the **GNU General Public License v3.0 or later** (GPLv3+). See [`LICENSE`](LICENSE) for the full license text.
+
+Kastrafiles is a derived work of [Bubble](https://github.com/TattvaOrg/Bubble) (originally by Soyeb Pervez Jim and contributors), which was released under the Apache License 2.0. Apache-2.0 permits distributing derivatives under GPLv3, so this project is distributed under GPLv3 while retaining the original authors' copyright. The original Apache-2.0 text is preserved in [`LICENSES/Apache-2.0.txt`](LICENSES/Apache-2.0.txt), and provenance is documented in [`NOTICE`](NOTICE).

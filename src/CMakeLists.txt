@@ -1,4 +1,4 @@
-set(BUBBLE_SOURCES
+set(KASTRAFILES_SOURCES
     main.cpp
     services/configmanager.cpp
     services/themeloader.cpp
@@ -34,13 +34,13 @@ set(BUBBLE_SOURCES
     providers/pdfpreviewprovider.cpp
 )
 
-qt_add_executable(bubble ${BUBBLE_SOURCES})
+qt_add_executable(kastrafiles ${KASTRAFILES_SOURCES})
 
-option(BUBBLE_ENABLE_PCH "Enable precompiled headers (faster builds)" ON)
-option(BUBBLE_ENABLE_UNITY_BUILD "Enable unity builds (faster clean builds)" ON)
+option(KASTRAFILES_ENABLE_PCH "Enable precompiled headers (faster builds)" ON)
+option(KASTRAFILES_ENABLE_UNITY_BUILD "Enable unity builds (faster clean builds)" ON)
 
-if(BUBBLE_ENABLE_PCH)
-    target_precompile_headers(bubble PRIVATE
+if(KASTRAFILES_ENABLE_PCH)
+    target_precompile_headers(kastrafiles PRIVATE
         <QtCore/QObject>
         <QtCore/QString>
         <QtCore/QStringList>
@@ -53,8 +53,8 @@ if(BUBBLE_ENABLE_PCH)
     )
 endif()
 
-if(BUBBLE_ENABLE_UNITY_BUILD)
-    set_target_properties(bubble PROPERTIES
+if(KASTRAFILES_ENABLE_UNITY_BUILD)
+    set_target_properties(kastrafiles PROPERTIES
         UNITY_BUILD ON
         UNITY_BUILD_BATCH_SIZE 8
     )
@@ -72,18 +72,18 @@ endif()
 
 set_source_files_properties(qml/theme/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-option(BUBBLE_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
+option(KASTRAFILES_ENABLE_QML_CACHEGEN "Enable Qt QML cache compilation (faster startup, slower builds)" OFF)
 
-set(bubble_qml_module_args
-    URI Bubble
+set(kastrafiles_qml_module_args
+    URI Kastrafiles
     VERSION 1.0
 )
 
-if(NOT BUBBLE_ENABLE_QML_CACHEGEN)
-    list(APPEND bubble_qml_module_args NO_CACHEGEN)
+if(NOT KASTRAFILES_ENABLE_QML_CACHEGEN)
+    list(APPEND kastrafiles_qml_module_args NO_CACHEGEN)
 endif()
 
-list(APPEND bubble_qml_module_args
+list(APPEND kastrafiles_qml_module_args
     QML_FILES
         qml/Main.qml
         qml/theme/Theme.qml
@@ -236,17 +236,17 @@ list(APPEND bubble_qml_module_args
         qml/icons/IconZoomIn.qml
         qml/icons/IconZoomOut.qml
     RESOURCES
-        qml/images/bubble.svg
+        qml/images/kastrafiles.svg
 )
 
-qt_add_qml_module(bubble ${bubble_qml_module_args})
+qt_add_qml_module(kastrafiles ${kastrafiles_qml_module_args})
 
 # Make Quill module discoverable at runtime
-set_target_properties(bubble PROPERTIES
+set_target_properties(kastrafiles PROPERTIES
     QT_QML_IMPORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/qml"
 )
 
-target_link_libraries(bubble PRIVATE
+target_link_libraries(kastrafiles PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Qml
@@ -263,58 +263,58 @@ target_link_libraries(bubble PRIVATE
 )
 
 if(KF6WindowSystem_FOUND)
-    target_link_libraries(bubble PRIVATE KF6::WindowSystem)
+    target_link_libraries(kastrafiles PRIVATE KF6::WindowSystem)
 endif()
 
-target_include_directories(bubble PRIVATE
+target_include_directories(kastrafiles PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
 # Standalone uninstall cleanup tool
-qt_add_executable(bubble-vault-destroy
+qt_add_executable(kastrafiles-vault-destroy
     vaultdestroy.cpp
     services/cryptoengine.cpp
     services/vaultdatabase.cpp
 )
-target_link_libraries(bubble-vault-destroy PRIVATE
+target_link_libraries(kastrafiles-vault-destroy PRIVATE
     Qt6::Core
     Qt6::Sql
     OpenSSL::Crypto
     PkgConfig::ARGON2
 )
-target_include_directories(bubble-vault-destroy PRIVATE
+target_include_directories(kastrafiles-vault-destroy PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Standalone immutable attribute helper
-add_executable(bubble-vault-helper
+add_executable(kastrafiles-vault-helper
     vaulthelper.cpp
 )
 
-set(BUBBLE_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
+set(KASTRAFILES_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
 
-target_compile_definitions(bubble PRIVATE
-    BUBBLE_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
-    BUBBLE_DATA_DIR="${BUBBLE_DATA_DIR}"
-    BUBBLE_VERSION="${PROJECT_VERSION}"
+target_compile_definitions(kastrafiles PRIVATE
+    KASTRAFILES_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    KASTRAFILES_DATA_DIR="${KASTRAFILES_DATA_DIR}"
+    KASTRAFILES_VERSION="${PROJECT_VERSION}"
 )
 
 if(KF6WindowSystem_FOUND)
-    target_compile_definitions(bubble PRIVATE
-        BUBBLE_HAS_KWINDOWSYSTEM=1
+    target_compile_definitions(kastrafiles PRIVATE
+        KASTRAFILES_HAS_KWINDOWSYSTEM=1
     )
 endif()
 
-install(TARGETS bubble bubble-vault-destroy bubble-vault-helper DESTINATION bin)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tattvaorg.Bubble.desktop"
+install(TARGETS kastrafiles kastrafiles-vault-destroy kastrafiles-vault-helper DESTINATION bin)
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.desktop"
     DESTINATION share/applications)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tattvaorg.Bubble.svg"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.svg"
     DESTINATION share/icons/hicolor/scalable/apps)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tattvaorg.Bubble.metainfo.xml"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.metainfo.xml"
     DESTINATION share/metainfo)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/bubble-cleanup.hook"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/kastrafiles-cleanup.hook"
     DESTINATION share/libalpm/hooks)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/org.bubble.vault.policy"
+install(FILES "${CMAKE_SOURCE_DIR}/dist/org.kastrafiles.vault.policy"
     DESTINATION share/polkit-1/actions)
 

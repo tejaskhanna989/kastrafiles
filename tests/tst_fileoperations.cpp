@@ -889,7 +889,7 @@ private slots:
             QSKIP("gio not found in PATH");
 
         // Use a dir under home so gio trash can find the Trash directory
-        QString testPath = QDir::homePath() + "/.cache/bubble-test-trash";
+        QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-trash";
         QDir().mkpath(testPath);
         QString filePath = testPath + "/trash_me.txt";
         {
@@ -921,7 +921,7 @@ private slots:
             QSKIP("gio not found in PATH");
 
         const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        const QString testPath = QDir::homePath() + "/.cache/bubble-test-restore-trash-" + uniqueId;
+        const QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-restore-trash-" + uniqueId;
         QDir().mkpath(testPath);
 
         const QString filePath = testPath + "/restore_me.txt";
@@ -970,7 +970,7 @@ private slots:
             QSKIP("gio not found in PATH");
 
         const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        const QString testPath = QDir::homePath() + "/.cache/bubble-test-restore-trash-uri-" + uniqueId;
+        const QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-restore-trash-uri-" + uniqueId;
         QDir().mkpath(testPath);
 
         const QString filePath = testPath + "/restore_uri_me.txt";
@@ -1019,7 +1019,7 @@ private slots:
             QSKIP("gio not found in PATH");
 
         const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        const QString testPath = QDir::homePath() + "/.cache/bubble-test-delete-trash-dir-" + uniqueId;
+        const QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-delete-trash-dir-" + uniqueId;
         const QString dirPath = testPath + "/doomed_folder";
         QVERIFY(QDir().mkpath(dirPath + "/nested"));
         {
@@ -1055,7 +1055,7 @@ private slots:
     void testDeleteFromTrashRemovesMetadata()
     {
         const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        const QString testPath = QDir::homePath() + "/.cache/bubble-test-trash-meta-" + uniqueId;
+        const QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-trash-meta-" + uniqueId;
         QVERIFY(QDir().mkpath(testPath));
         const QString filePath = testPath + "/meta_me.txt";
         {
@@ -1095,7 +1095,7 @@ private slots:
     void testRestoreDoesNotOverwriteExistingFile()
     {
         const QString uniqueId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        const QString testPath = QDir::homePath() + "/.cache/bubble-test-restore-clash-" + uniqueId;
+        const QString testPath = QDir::homePath() + "/.cache/kastrafiles-test-restore-clash-" + uniqueId;
         QVERIFY(QDir().mkpath(testPath));
         const QString filePath = testPath + "/clash.txt";
         {

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Drop Qt payload linuxdeploy-plugin-qt bundles but Bubble never loads.
+# Drop Qt payload linuxdeploy-plugin-qt bundles but Kastrafiles never loads.
 # Run after the first linuxdeploy pass, before `--output appimage`.
 # Every removal here is covered by the AppImage smoke test.
 set -euo pipefail
@@ -16,7 +16,7 @@ rm -rf "$appdir/usr/qml/QtQuick/Controls/designer"
 rm -rf "$appdir/usr/qml/QtQuick/Dialogs"
 rm -f "$appdir"/usr/lib/libQt6QuickDialogs2*.so*
 
-# Qt's own .qm files: Bubble has no translations and never installs a QTranslator.
+# Qt's own .qm files: Kastrafiles has no translations and never installs a QTranslator.
 rm -rf "$appdir/usr/translations"
 
 # Picked up from src/qml/Quill/Showcase.qml on machines that have Quickshell installed.
@@ -31,7 +31,7 @@ for plugin in libqmng libqjp2 libqtga libqwbmp libqicns; do
 done
 rm -f "$appdir"/usr/lib/libmng.so* "$appdir"/usr/lib/libjasper.so*
 
-# Bubble only uses SQLite
+# Kastrafiles only uses SQLite
 if [ -d "$appdir/usr/plugins/sqldrivers" ]; then
     find "$appdir/usr/plugins/sqldrivers" -type f ! -name "libqsqlite.so" -delete 2>/dev/null || true
 fi

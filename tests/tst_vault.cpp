@@ -193,7 +193,7 @@ void TestVault::testVaultServiceLockUnlockFile()
     QString configDir = tempDir.filePath("config");
     QString testFile = tempDir.filePath("secret_document.txt");
 
-    QByteArray originalContent = "Top secret blueprint for Bubble file manager!";
+    QByteArray originalContent = "Top secret blueprint for Kastrafiles file manager!";
     {
         QFile f(testFile);
         QVERIFY(f.open(QIODevice::WriteOnly));
@@ -619,7 +619,7 @@ void TestVault::testVaultServiceFolderRecreationPermissionDeniedBug()
     QVERIFY(vault.lockItem(testDir, "22"));
     QVERIFY(vault.isLocked(testDir));
 
-    // 3. Unlock directory in session mode with password "22" (as Bubble does before delete)
+    // 3. Unlock directory in session mode with password "22" (as Kastrafiles does before delete)
     QVERIFY(vault.sessionUnlockFolder(testDir, "22"));
     QVERIFY(vault.isSessionUnlocked(testDir));
 

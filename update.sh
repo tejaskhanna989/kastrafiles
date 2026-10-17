@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Bubble Updater Script
+# Kastrafiles Updater Script
 # ==============================================================================
-# Updates Bubble using one of two channels:
+# Updates Kastrafiles using one of two channels:
 #   1) Download latest release (Prebuilt binary AppImage - fast, no compiling)
 #   2) Bleeding edge           (Latest git source from main - newest features)
 #
@@ -27,18 +27,18 @@ fi
 
 # Handle execution via curl / outside git repo
 if [[ ! -d "$SCRIPT_DIR/.git" || ! -f "$SCRIPT_DIR/CMakeLists.txt" ]]; then
-    CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/bubble-source"
-    echo "==> Bubble updater invoked outside source repo."
+    CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/kastrafiles-source"
+    echo "==> Kastrafiles updater invoked outside source repo."
     if [[ -d "$CACHE_DIR/.git" ]]; then
         echo "==> Updating cached repository at $CACHE_DIR..."
         git -C "$CACHE_DIR" fetch --depth 1 origin main
         git -C "$CACHE_DIR" reset --hard origin/main
         git -C "$CACHE_DIR" submodule update --init --recursive
     else
-        echo "==> Cloning Bubble into $CACHE_DIR..."
+        echo "==> Cloning Kastrafiles into $CACHE_DIR..."
         mkdir -p "$(dirname "$CACHE_DIR")"
-        git clone --depth 1 --recursive https://github.com/Naitik-Vadher-4661/Bubble.git "$CACHE_DIR" 2>/dev/null \
-            || git clone --depth 1 --recursive https://github.com/TattvaOrg/Bubble.git "$CACHE_DIR"
+        git clone --depth 1 --recursive https://github.com/Naitik-Vadher-4661/Kastrafiles.git "$CACHE_DIR" 2>/dev/null \
+            || git clone --depth 1 --recursive https://github.com/tejaskhanna989/Kastrafiles.git "$CACHE_DIR"
     fi
     exec bash "$CACHE_DIR/update.sh" "$@"
 fi
@@ -54,7 +54,7 @@ PASSTHROUGH_ARGS=()
 
 print_usage() {
     cat <<USAGE
-Bubble Updater
+Kastrafiles Updater
 
 Usage:
   ./update.sh [channel] [options]
@@ -112,7 +112,7 @@ for arg in "$@"; do
 done
 
 echo "=============================================="
-echo "               Bubble Updater                 "
+echo "               Kastrafiles Updater                 "
 echo "=============================================="
 
 # Detect existing installation mode if not explicitly specified
@@ -125,7 +125,7 @@ for arg in "${PASSTHROUGH_ARGS[@]:-}"; do
 done
 
 if [[ $HAS_MODE -eq 0 ]]; then
-    if [[ -x "/usr/local/bin/bubble" && ! -x "$HOME/.local/bin/bubble" ]]; then
+    if [[ -x "/usr/local/bin/kastrafiles" && ! -x "$HOME/.local/bin/kastrafiles" ]]; then
         echo "==> Detected existing system installation in /usr/local."
         PASSTHROUGH_ARGS+=("--system")
     else
@@ -141,7 +141,7 @@ if [[ $CHECK_ONLY -eq 1 ]]; then
     ORIGIN_REPO="$(git remote get-url origin 2>/dev/null | sed -E 's#^.*github\.com[:/]([^/]+/[^/.]+)(\.git)?$#\1#' || true)"
     REPOS_TO_CHECK=()
     [[ -n "$ORIGIN_REPO" ]] && REPOS_TO_CHECK+=("$ORIGIN_REPO")
-    REPOS_TO_CHECK+=("TattvaOrg/Bubble")
+    REPOS_TO_CHECK+=("tejaskhanna989/Kastrafiles")
     
     LATEST_TAG=""
     for repo in "${REPOS_TO_CHECK[@]}"; do
@@ -215,10 +215,10 @@ if [[ "$UPDATE_CHANNEL" == "release" ]]; then
     if ./install.sh --binary "${PASSTHROUGH_ARGS[@]:-}"; then
         echo
         echo "=============================================="
-        echo "    Bubble has been successfully updated!     "
+        echo "    Kastrafiles has been successfully updated!     "
         echo "=============================================="
         echo " Channel: Latest Release (Prebuilt Binary)"
-        echo " Enjoy using Bubble!"
+        echo " Enjoy using Kastrafiles!"
         exit 0
     else
         echo
@@ -252,7 +252,7 @@ if [[ "$UPDATE_CHANNEL" == "edge" ]]; then
     echo "==> Updating via channel: Bleeding Edge (Source from main branch)"
 
     if ! command -v git >/dev/null 2>&1; then
-        echo "Error: 'git' is required to update Bubble via source." >&2
+        echo "Error: 'git' is required to update Kastrafiles via source." >&2
         exit 1
     fi
 
@@ -266,7 +266,7 @@ if [[ "$UPDATE_CHANNEL" == "edge" ]]; then
     REMOTE_SHORT="$(git rev-parse --short origin/main 2>/dev/null || echo 'none')"
 
     if [[ "$LOCAL_HASH" == "$REMOTE_HASH" ]]; then
-        echo "==> Bubble source is already at the latest commit ($LOCAL_SHORT)."
+        echo "==> Kastrafiles source is already at the latest commit ($LOCAL_SHORT)."
         if [[ $FORCE_UPDATE -eq 0 ]]; then
             echo "==> No new commits found."
             rebuild_choice=""
@@ -296,7 +296,7 @@ if [[ "$UPDATE_CHANNEL" == "edge" ]]; then
     DID_STASH=0
     if ! git diff-index --quiet HEAD -- 2>/dev/null; then
         echo "==> Stashing uncommitted local changes..."
-        if git stash push -m "bubble-autostash-before-update-$(date +%s)"; then
+        if git stash push -m "kastrafiles-autostash-before-update-$(date +%s)"; then
             DID_STASH=1
         fi
     fi
@@ -312,14 +312,14 @@ if [[ "$UPDATE_CHANNEL" == "edge" ]]; then
     echo "==> Syncing git submodules..."
     git submodule update --init --recursive
 
-    echo "==> Building and installing updated Bubble from source..."
+    echo "==> Building and installing updated Kastrafiles from source..."
     ./install.sh --source "${PASSTHROUGH_ARGS[@]:-}"
 
     echo
     echo "=============================================="
-    echo "    Bubble has been successfully updated!     "
+    echo "    Kastrafiles has been successfully updated!     "
     echo "=============================================="
     echo " Channel:        Bleeding Edge (Source build)"
     echo " Current commit: $(git rev-parse --short HEAD)"
-    echo " Enjoy using Bubble!"
+    echo " Enjoy using Kastrafiles!"
 fi

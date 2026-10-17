@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.tattvaorg.Bubble</id>
+  <id>io.github.tejaskhanna989.Kastrafiles</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>MIT</project_license>
 
-  <name>Bubble</name>
+  <name>Kastrafiles</name>
   <summary>Lightweight Qt6/QML file manager for Hyprland</summary>
 
   <description>
     <p>
-      Bubble is a fast, keyboard-driven file manager built with Qt6 and QML.
+      Kastrafiles is a fast, keyboard-driven file manager built with Qt6 and QML.
       It is designed for tiling Wayland compositors like Hyprland but works on
       any Wayland desktop session.
     </p>
@@ -29,28 +29,28 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">io.github.tattvaorg.Bubble.desktop</launchable>
+  <launchable type="desktop-id">io.github.tejaskhanna989.Kastrafiles.desktop</launchable>
 
-  <url type="homepage">https://github.com/TattvaOrg/Bubble</url>
-  <url type="bugtracker">https://github.com/TattvaOrg/Bubble/issues</url>
-  <url type="vcs-browser">https://github.com/TattvaOrg/Bubble</url>
+  <url type="homepage">https://github.com/tejaskhanna989/Kastrafiles</url>
+  <url type="bugtracker">https://github.com/tejaskhanna989/Kastrafiles/issues</url>
+  <url type="vcs-browser">https://github.com/tejaskhanna989/Kastrafiles</url>
 
-  <developer id="io.github.tattvaorg">
+  <developer id="io.github.tejaskhanna989">
     <name>Tattva</name>
   </developer>
 
   <screenshots>
     <screenshot type="default">
       <caption>Grid view with file preview</caption>
-      <image>https://raw.githubusercontent.com/TattvaOrg/Bubble/main/docs/screenshots/grid-view.png</image>
+      <image>https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/docs/screenshots/grid-view.png</image>
     </screenshot>
     <screenshot>
       <caption>Miller column view</caption>
-      <image>https://raw.githubusercontent.com/TattvaOrg/Bubble/main/docs/screenshots/miller-view.png</image>
+      <image>https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/docs/screenshots/miller-view.png</image>
     </screenshot>
     <screenshot>
       <caption>Quick preview overlay</caption>
-      <image>https://raw.githubusercontent.com/TattvaOrg/Bubble/main/docs/screenshots/quick-preview.png</image>
+      <image>https://raw.githubusercontent.com/tejaskhanna989/Kastrafiles/main/docs/screenshots/quick-preview.png</image>
     </screenshot>
   </screenshots>
 
@@ -62,7 +62,7 @@
   </categories>
 
   <provides>
-    <binary>bubble</binary>
+    <binary>kastrafiles</binary>
   </provides>
 
   <releases>
@@ -189,7 +189,7 @@
     </release>
     <release version="0.4.6" date="2026-04-08">
       <description>
-        <p>Documentation polish: correct the feature list in the AppStream metadata to match the three views Bubble actually ships (grid, detailed and Miller columns) and expand it to mention git status overlays, remote access, quick preview and archive support.</p>
+        <p>Documentation polish: correct the feature list in the AppStream metadata to match the three views Kastrafiles actually ships (grid, detailed and Miller columns) and expand it to mention git status overlays, remote access, quick preview and archive support.</p>
       </description>
     </release>
     <release version="0.4.5" date="2026-04-08">

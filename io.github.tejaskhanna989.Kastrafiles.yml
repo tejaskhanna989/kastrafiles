@@ -1,23 +1,23 @@
-# Flatpak manifest for Bubble.
+# Flatpak manifest for Kastrafiles.
 #
 # Local build (run from repo root after committing your changes):
 #
 #   flatpak install -y flathub org.kde.Platform//6.9 org.kde.Sdk//6.9
 #   flatpak-builder --force-clean --user --install \
-#       build-flatpak io.github.tattvaorg.Bubble.yml
-#   flatpak run io.github.tattvaorg.Bubble
+#       build-flatpak io.github.tejaskhanna989.Kastrafiles.yml
+#   flatpak run io.github.tejaskhanna989.Kastrafiles
 #
-# For local iteration without committing, swap the `bubble` module's source
+# For local iteration without committing, swap the `kastrafiles` module's source
 # from `type: git` to `type: dir, path: .` (see comment below).
 #
 # For Flathub submission, this file is copied to a separate flathub repo
-# and the `bubble` source must stay as `type: git` with a pinned tag/commit.
+# and the `kastrafiles` source must stay as `type: git` with a pinned tag/commit.
 
-app-id: io.github.tattvaorg.Bubble
+app-id: io.github.tejaskhanna989.Kastrafiles
 runtime: org.kde.Platform
 runtime-version: '6.9'
 sdk: org.kde.Sdk
-command: bubble
+command: kastrafiles
 
 finish-args:
   # Display + input
@@ -127,7 +127,7 @@ modules:
         url: https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-aarch64-unknown-linux-gnu.tar.gz
         sha256: feccae9a0576d97609c57e32d3914c5116136eab0df74c2ab74ef397d42c5b10
 
-  # ── Bubble ─────────────────────────────────────────────────────────────
+  # ── Kastrafiles ─────────────────────────────────────────────────────────────
   # ── poppler-utils ──────────────────────────────────────────────────────
   # PdfPreviewProvider, PreviewService and MetadataExtractor shell out to
   # pdftoppm and pdfinfo for PDF thumbnails, the quick-preview panel and PDF
@@ -170,7 +170,7 @@ modules:
         url: https://poppler.freedesktop.org/poppler-26.08.0.tar.xz
         sha256: dc906e68cea698109706ac6aa3d2c9d4512fcfcac42d90b8afcda486d1b9abd0
     cleanup:
-      # It builds thirteen utils; bubble calls two.
+      # It builds thirteen utils; kastrafiles calls two.
       - /bin/pdfattach
       - /bin/pdfdetach
       - /bin/pdffonts
@@ -183,23 +183,23 @@ modules:
       - /bin/pdftotext
       - /bin/pdfunite
 
-  - name: bubble
+  - name: kastrafiles
     buildsystem: cmake-ninja
     config-opts:
       - -DCMAKE_BUILD_TYPE=Release
       - -DCMAKE_INSTALL_PREFIX=/app
-      - -DBUBBLE_DATA_DIR=/app/share/bubble
+      - -DKASTRAFILES_DATA_DIR=/app/share/kastrafiles
       - -DBUILD_TESTS=OFF
-      - -DBUBBLE_ENABLE_PCH=OFF
-      - -DBUBBLE_ENABLE_UNITY_BUILD=OFF
+      - -DKASTRAFILES_ENABLE_PCH=OFF
+      - -DKASTRAFILES_ENABLE_UNITY_BUILD=OFF
     post-install:
       # Required by Flathub: every app must install its license file to
       # $FLATPAK_DEST/share/licenses/$FLATPAK_ID.
-      - install -Dm644 LICENSE /app/share/licenses/io.github.tattvaorg.Bubble/LICENSE
+      - install -Dm644 LICENSE /app/share/licenses/io.github.tejaskhanna989.Kastrafiles/LICENSE
     sources:
       # ── FLATHUB SUBMISSION ──
       - type: git
-        url: https://github.com/TattvaOrg/Bubble.git
+        url: https://github.com/tejaskhanna989/Kastrafiles.git
         tag: v0.6.1
 
       # ── LOCAL ITERATION ──
