@@ -388,19 +388,22 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: dist
+          # Download into a dedicated dir — NOT "dist", which already exists in
+          # the checked-out tree and would otherwise leak repo metadata files
+          # (.desktop/.svg/.metainfo/.policy) into the release assets.
+          path: _artifacts
           merge-multiple: true
 
       - name: List downloaded installers
-        run: find dist -type f | sort
+        run: find _artifacts -type f | sort
 
       - name: Prepare release notes
         env:
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           mkdir -p out
-          # Flatten artifacts into out/
-          find dist -type f -exec cp -v {} out/ \;
+          # Flatten installer artifacts into out/
+          find _artifacts -type f -exec cp -v {} out/ \;
           if [ "$IS_TAG" = "true" ]; then
             git fetch --force --no-tags origin "refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}" || true
             git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" > release-notes.md || true
