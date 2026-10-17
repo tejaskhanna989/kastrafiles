@@ -1,83 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8B5CF6"/>
-      <stop offset="52%" stop-color="#6D3FE0"/>
-      <stop offset="100%" stop-color="#3B2596"/>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2A1E5C"/>
+      <stop offset="100%" stop-color="#181038"/>
     </linearGradient>
 
-    <radialGradient id="tileGlow" cx="30%" cy="22%" r="80%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".28"/>
-      <stop offset="55%" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
-
-    <linearGradient id="backSheet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#E4DDFF"/>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#B9A6FF"/>
+      <stop offset="100%" stop-color="#8E77F0"/>
     </linearGradient>
 
-    <linearGradient id="frontSheet" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#F1EDFF"/>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8C6BF2"/>
+      <stop offset="55%" stop-color="#7350E6"/>
+      <stop offset="100%" stop-color="#5B39CE"/>
     </linearGradient>
 
-    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFD36B"/>
-      <stop offset="100%" stop-color="#FF9E3D"/>
+    <linearGradient id="frontTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A98BFF" stop-opacity=".9"/>
+      <stop offset="100%" stop-color="#A98BFF" stop-opacity="0"/>
     </linearGradient>
 
-    <filter id="cardShadow" x="-30%" y="-30%" width="165%" height="170%">
-      <feDropShadow dx="0" dy="22" stdDeviation="22" flood-color="#150A3A" flood-opacity=".55"/>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="190%">
+      <feDropShadow dx="0" dy="26" stdDeviation="26" flood-color="#0E0730" flood-opacity=".6"/>
     </filter>
 
-    <filter id="sparkGlow" x="-80%" y="-80%" width="260%" height="260%">
-      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#FFC24B" flood-opacity=".55"/>
+    <filter id="contact" x="-40%" y="-40%" width="180%" height="200%">
+      <feDropShadow dx="0" dy="-8" stdDeviation="12" flood-color="#2A1560" flood-opacity=".5"/>
     </filter>
   </defs>
 
-  <!-- Rounded app tile -->
-  <rect x="48" y="48" width="928" height="928" rx="232" fill="url(#tile)"/>
-  <rect x="48" y="48" width="928" height="928" rx="232" fill="url(#tileGlow)"/>
+  <!-- app tile -->
+  <rect x="48" y="48" width="928" height="928" rx="216" fill="url(#tile)"/>
 
-  <!-- Folder -->
-  <g filter="url(#cardShadow)">
-    <!-- Back sheet + tab -->
+  <g filter="url(#soft)">
+    <!-- back sheet with folder tab -->
     <path
-      d="M252 452
-         C252 414 282 386 320 386
-         L432 386
-         C448 386 460 390 470 402
-         L504 440
-         C514 452 526 458 544 458
-         L772 458
-         C792 458 806 472 806 492
-         L806 706
-         C806 728 790 742 770 742
-         L288 742
-         C266 742 252 728 252 706
+      d="M184 456
+         L184 352
+         C184 330 202 312 224 312
+         L408 312
+         C426 312 441 318 452 332
+         L500 392
+         C510 405 524 412 541 412
+         L800 412
+         C822 412 840 430 840 452
+         L840 690
+         C840 712 822 730 800 730
+         L224 730
+         C202 730 184 712 184 690
          Z"
-      fill="url(#backSheet)"/>
+      fill="url(#back)"/>
 
-    <!-- Front sheet -->
+    <!-- front flap -->
+    <g filter="url(#contact)">
+      <path
+        d="M184 470
+           C184 448 202 430 224 430
+           L800 430
+           C822 430 840 448 840 470
+           L840 690
+           C840 712 822 730 800 730
+           L224 730
+           C202 730 184 712 184 690
+           Z"
+        fill="url(#front)"/>
+    </g>
+
+    <!-- top light on front flap -->
     <path
-      d="M252 524
-         C252 498 272 480 298 480
-         L760 480
-         C786 480 806 498 806 524
-         L806 706
-         C806 728 790 742 770 742
-         L288 742
-         C266 742 252 728 252 706
+      d="M184 470
+         C184 448 202 430 224 430
+         L800 430
+         C822 430 840 448 840 470
+         L840 512
+         L184 512
          Z"
-      fill="url(#frontSheet)"/>
+      fill="url(#frontTop)"/>
   </g>
-
-  <!-- Folder opening accent -->
-  <rect x="252" y="480" width="554" height="16" rx="8" fill="url(#amber)"/>
-
-  <!-- Spark accents (Kastra = star) -->
-  <g filter="url(#sparkGlow)">
-    <path d="M742 236 C750 286 772 308 822 316 C772 324 750 346 742 396 C734 346 712 324 662 316 C712 308 734 286 742 236 Z" fill="url(#amber)"/>
-  </g>
-  <path d="M322 262 C327 292 340 305 370 310 C340 315 327 328 322 358 C317 328 304 315 274 310 C304 305 317 292 322 262 Z" fill="#FFFFFF" opacity=".85"/>
 </svg>
