@@ -3,7 +3,7 @@
   Kastrafiles Android manifest (storage-browser edition).
 
   Based on Qt 6.7.3's default template (src/android/templates/AndroidManifest.xml)
-  so the -- %%INSERT_*%% markers androiddeployqt substitutes are all present:
+  so the INSERT markers androiddeployqt substitutes are all present:
   version code/name, app name, lib_name (mandatory — loads the .so), Qt's
   module permissions/features, and the androidx FileProvider Qt needs.
 
