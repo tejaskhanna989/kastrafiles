@@ -418,10 +418,19 @@ jobs:
           set -euo pipefail
           echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
           test -n "${ANDROID_HOME:-}" || { echo "::error::ANDROID_HOME not set on runner"; exit 1; }
-          # Prefer sdkmanager on PATH; fall back to the versioned cmdline-tools.
+          # Prefer sdkmanager on PATH, then the well-known layouts, then a
+          # search. Note: the runner keeps it at cmdline-tools/<version>/bin/
+          # sdkmanager, i.e. depth 3 under cmdline-tools — a -maxdepth 2 search
+          # finds only the 'bin' directory and misses the binary.
           SKDMGR="$(command -v sdkmanager || true)"
+          for p in \
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "$ANDROID_HOME/cmdline-tools/bin/sdkmanager"
+          do
+            if [ -z "$SKDMGR" ] && [ -x "$p" ]; then SKDMGR="$p"; fi
+          done
           if [ -z "$SKDMGR" ]; then
-            SKDMGR="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 2 -name sdkmanager -type f 2>/dev/null | sort | tail -n 1)"
+            SKDMGR="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 3 -name sdkmanager -type f 2>/dev/null | sort | tail -n 1)"
           fi
           test -n "$SKDMGR" || { echo "::error::sdkmanager not found under $ANDROID_HOME"; exit 1; }
           echo "Using sdkmanager: $SKDMGR"
