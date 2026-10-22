@@ -407,20 +407,38 @@ jobs:
           arch: android_arm64_v8a
           modules: 'qtshadertools'
 
-      - name: Install Android SDK + NDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-24.04 runners already ship a full Android SDK (ANDROID_HOME =
+      # /usr/local/lib/android/sdk) with cmdline-tools and accepted licences.
+      # We intentionally do NOT use android-actions/setup-android here: it
+      # runs `sdkmanager tools`, and the legacy `tools` package no longer
+      # exists in modern cmdline-tools, so that action aborts. Drive the
+      # preinstalled sdkmanager directly instead.
+      - name: Locate preinstalled Android SDK
+        run: |
+          set -euo pipefail
+          echo "ANDROID_HOME=${ANDROID_HOME:-unset}"
+          test -n "${ANDROID_HOME:-}" || { echo "::error::ANDROID_HOME not set on runner"; exit 1; }
+          # Prefer sdkmanager on PATH; fall back to the versioned cmdline-tools.
+          SKDMGR="$(command -v sdkmanager || true)"
+          if [ -z "$SKDMGR" ]; then
+            SKDMGR="$(find "$ANDROID_HOME/cmdline-tools" -maxdepth 2 -name sdkmanager -type f 2>/dev/null | sort | tail -n 1)"
+          fi
+          test -n "$SKDMGR" || { echo "::error::sdkmanager not found under $ANDROID_HOME"; exit 1; }
+          echo "Using sdkmanager: $SKDMGR"
+          echo "ANDROID_SDKMANAGER=$SKDMGR" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
 
       - name: Install SDK packages (platform, build-tools, NDK)
         run: |
           set -euo pipefail
-          sdkmanager --install \
+          # Accept licences non-interactively so the build never stalls. `yes`
+          # exits via SIGPIPE (141) once sdkmanager is done, hence the guard.
+          yes | "$ANDROID_SDKMANAGER" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_SDKMANAGER" --install \
             "platform-tools" \
             "platforms;android-34" \
             "build-tools;34.0.0" \
             "ndk;${ANDROID_NDK_VERSION}"
-          # Accept licences non-interactively so the build never stalls.
-          yes | sdkmanager --licenses >/dev/null || true
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
           test -d "$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
 
