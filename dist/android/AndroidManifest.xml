@@ -21,12 +21,14 @@
 
     <!-- Storage access for the storage browser. MANAGE_EXTERNAL_STORAGE is
          "All files access": lets Kastrafiles list and manage the whole
-         shared tree (/storage/emulated/0). READ/WRITE cover the scoped
-         equivalents on older Android versions, READ_MEDIA_* cover media
-         listing on Android 13+ before All files access is granted. -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
+         shared tree (/storage/emulated/0). READ_MEDIA_* cover media listing
+         on Android 13+ before All files access is granted.
+
+         NOTE: READ/WRITE_EXTERNAL_STORAGE are intentionally NOT declared here
+         — Qt's androiddeployqt already injects them via the
+         %%INSERT_PERMISSIONS%% marker above, and declaring them again fails
+         the manifest merger with a duplicate-permission error. At runtime
+         MANAGE_EXTERNAL_STORAGE supersedes them anyway. -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
