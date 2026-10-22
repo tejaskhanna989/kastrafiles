@@ -18,8 +18,10 @@
 #include <QSaveFile>
 #include <QTimer>
 #include <QFontDatabase>
+#ifndef Q_OS_ANDROID
 #include <QDBusInterface>
 #include <QDBusReply>
+#endif
 #include <QStyleHints>
 #include <QFileInfo>
 #include <QLocalServer>
@@ -162,6 +164,11 @@ error   = "#f38ba8"  # errors, destructive actions
 // the user flips light/dark, so it is available even when Qt cannot see it.
 static bool desktopPrefersLight()
 {
+#ifdef Q_OS_ANDROID
+    // No XDG portal / session bus on Android. Trust Qt's colorScheme(), which
+    // tracks the system dark-mode setting, and default to dark otherwise.
+    return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
+#else
     QDBusInterface portal(QStringLiteral("org.freedesktop.portal.Desktop"),
                           QStringLiteral("/org/freedesktop/portal/desktop"),
                           QStringLiteral("org.freedesktop.portal.Settings"),
@@ -186,6 +193,7 @@ static bool desktopPrefersLight()
     // No portal, or it has no preference: trust Qt when it knows, else assume
     // dark, which is what this defaulted to before the portal was consulted.
     return QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Light;
+#endif
 }
 
 int main(int argc, char *argv[])
@@ -217,10 +225,12 @@ int main(int argc, char *argv[])
     fmt.setSamples(qMax(0, qEnvironmentVariableIntValue("KASTRAFILES_MSAA")));
     QSurfaceFormat::setDefaultFormat(fmt);
 
-    // Kastrafiles is a Wayland-only application (wl-copy clipboard, compositor
-    // integration, KWin blur effects). Detect a non-Wayland session before
-    // Qt tries to load the wayland QPA plugin so users see an actionable
+    // Kastrafiles is a Wayland-only application on Linux (wl-copy clipboard,
+    // compositor integration, KWin blur effects). Detect a non-Wayland session
+    // before Qt tries to load the wayland QPA plugin so users see an actionable
     // message instead of the cryptic "Failed to create wl_display" error.
+    // Android uses its own platform plugin (android), so this check is skipped.
+#if !defined(Q_OS_ANDROID)
     if (qEnvironmentVariableIsEmpty("WAYLAND_DISPLAY")) {
         const QByteArray sessionType = qgetenv("XDG_SESSION_TYPE");
         const char *session = sessionType.isEmpty() ? "unknown" : sessionType.constData();
@@ -241,6 +251,7 @@ int main(int argc, char *argv[])
                 session);
         return 1;
     }
+#endif
 
     // Extract an optional path argument. We skip flag-style args so Qt's
     // own options (e.g. `-style`, `-qmljsdebugger`) don't get mistaken

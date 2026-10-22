@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<!--
+  Kastrafiles Android manifest (storage-browser edition).
+
+  Based on Qt 6.7.3's default template (src/android/templates/AndroidManifest.xml)
+  so the -- %%INSERT_*%% markers androiddeployqt substitutes are all present:
+  version code/name, app name, lib_name (mandatory — loads the .so), Qt's
+  module permissions/features, and the androidx FileProvider Qt needs.
+
+  On top of Qt's defaults we add the storage permissions a file manager needs
+  to browse and manage shared storage (\"All files access\").
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.github.tejaskhanna989.kastrafiles"
+    android:installLocation="auto"
+    android:versionCode="-- %%INSERT_VERSION_CODE%% --"
+    android:versionName="-- %%INSERT_VERSION_NAME%% --">
+
+    <!-- %%INSERT_PERMISSIONS -->
+    <!-- %%INSERT_FEATURES -->
+
+    <!-- Storage access for the storage browser. MANAGE_EXTERNAL_STORAGE is
+         "All files access": lets Kastrafiles list and manage the whole
+         shared tree (/storage/emulated/0). READ/WRITE cover the scoped
+         equivalents on older Android versions, READ_MEDIA_* cover media
+         listing on Android 13+ before All files access is granted. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="29" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="true" />
+
+    <application
+        android:name="org.qtproject.qt.android.bindings.QtApplication"
+        android:hardwareAccelerated="true"
+        android:label="-- %%INSERT_APP_NAME%% --"
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"
+        android:allowBackup="true"
+        android:fullBackupOnly="false">
+        <activity
+            android:name="org.qtproject.qt.android.bindings.QtActivity"
+            android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
+            android:launchMode="singleTop"
+            android:screenOrientation="unspecified"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Mandatory: tells the Qt activity which native library to load.
+                 Must not be removed or the app dies on startup. -->
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="-- %%INSERT_APP_LIB_NAME%% --" />
+
+            <meta-data
+                android:name="android.app.arguments"
+                android:value="-- %%INSERT_APP_ARGUMENTS%% --" />
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.qtprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/qtprovider_paths" />
+        </provider>
+    </application>
+</manifest>

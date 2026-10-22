@@ -1,30 +1,52 @@
 cmake_minimum_required(VERSION 3.20)
 project(kastrafiles VERSION 0.6.1 LANGUAGES CXX)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0 gio-unix-2.0)
-pkg_check_modules(ARGON2 IMPORTED_TARGET libargon2)
-if(NOT ARGON2_FOUND)
-    find_path(ARGON2_INCLUDE_DIR NAMES argon2.h)
-    find_library(ARGON2_LIBRARY NAMES argon2)
-    if(ARGON2_INCLUDE_DIR AND ARGON2_LIBRARY)
-        add_library(PkgConfig::ARGON2 UNKNOWN IMPORTED)
-        set_target_properties(PkgConfig::ARGON2 PROPERTIES
-            IMPORTED_LOCATION "${ARGON2_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${ARGON2_INCLUDE_DIR}"
-        )
-    else()
-        message(FATAL_ERROR "libargon2 (or libargon2-dev) is required but was not found.")
-    endif()
+# ── Platform detection ─────────────────────────────────────────────
+# Android is a first-class target but a reduced one: the storage-browser
+# edition. Desktop-only backends (GIO volume monitor, DBus/UDisks2, the
+# argon2+OpenSSL vault) are compiled out on Android and replaced by
+# interface-compatible stubs so the QML layer is unchanged.
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+    set(KASTRAFILES_MOBILE ON)
+else()
+    set(KASTRAFILES_MOBILE OFF)
 endif()
-find_package(OpenSSL REQUIRED)
+
+if(KASTRAFILES_MOBILE)
+    message(STATUS "Kastrafiles: Android build — storage-browser edition (desktop backends stubbed)")
+endif()
+
+if(NOT KASTRAFILES_MOBILE)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(GIO REQUIRED IMPORTED_TARGET gio-2.0 gio-unix-2.0)
+    pkg_check_modules(ARGON2 IMPORTED_TARGET libargon2)
+    if(NOT ARGON2_FOUND)
+        find_path(ARGON2_INCLUDE_DIR NAMES argon2.h)
+        find_library(ARGON2_LIBRARY NAMES argon2)
+        if(ARGON2_INCLUDE_DIR AND ARGON2_LIBRARY)
+            add_library(PkgConfig::ARGON2 UNKNOWN IMPORTED)
+            set_target_properties(PkgConfig::ARGON2 PROPERTIES
+                IMPORTED_LOCATION "${ARGON2_LIBRARY}"
+                INTERFACE_INCLUDE_DIRECTORIES "${ARGON2_INCLUDE_DIR}"
+            )
+        else()
+            message(FATAL_ERROR "libargon2 (or libargon2-dev) is required but was not found.")
+        endif()
+    endif()
+    find_package(OpenSSL REQUIRED)
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Qml Quick QuickControls2 DBus Svg Network Concurrent Sql)
+# QtDBus is unavailable on Android, so only require it on desktop.
+set(KASTRAFILES_QT_COMPONENTS Core Gui Qml Quick QuickControls2 Svg Network Concurrent Sql)
+if(NOT KASTRAFILES_MOBILE)
+    list(APPEND KASTRAFILES_QT_COMPONENTS DBus)
+endif()
+find_package(Qt6 REQUIRED COMPONENTS ${KASTRAFILES_QT_COMPONENTS})
 find_package(KF6WindowSystem QUIET)
 
 add_subdirectory(src)

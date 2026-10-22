@@ -5,9 +5,11 @@
 #include "services/xdgtrash.h"
 #include <QBuffer>
 #include <QClipboard>
+#include <QDateTime>
 #include <QDesktopServices>
 #include <QDir>
 #include <QDirIterator>
+#include <QTextStream>
 #include <QThread>
 #include <QFile>
 #include <QFileInfo>
@@ -28,7 +30,9 @@
 #include <unistd.h>
 
 #undef signals
+#ifndef Q_OS_ANDROID
 #include <gio/gio.h>
+#endif
 #define signals Q_SIGNALS
 
 namespace {
@@ -353,6 +357,7 @@ QString joinLocation(const QString &parentPath, const QString &name)
     return QDir(normalizedParent).filePath(name);
 }
 
+#ifndef Q_OS_ANDROID
 GFile *gFileForLocation(const QString &path)
 {
     const QByteArray utf8 = path.toUtf8();
@@ -474,6 +479,17 @@ QVariantMap remotePathInfo(const QString &path)
     g_object_unref(file);
     return result;
 }
+#else
+// Android: no GIO. Remote (URI) paths do not exist here, so the remote-info
+// probe returns an empty map. sourceInfoForPath() still calls this (behind an
+// isRemoteUriPath() check that is never true on Android), so the symbol must
+// exist to link.
+QVariantMap remotePathInfo(const QString &path)
+{
+    Q_UNUSED(path)
+    return {};
+}
+#endif
 
 QVariantMap sourceInfoForPath(const QString &path)
 {
@@ -504,6 +520,15 @@ bool moveLocationSync(const QString &sourcePath, const QString &targetPath, QStr
         return ok;
     }
 
+#ifdef Q_OS_ANDROID
+    // Android has no GIO and no remote (URI) locations; everything is a local
+    // path, handled by the QFile::rename() branch above. This is unreachable
+    // but keeps the control flow total.
+    Q_UNUSED(normalizedTarget)
+    if (error)
+        *error = QStringLiteral("Remote move is not supported on Android");
+    return false;
+#else
     GFile *src = gFileForLocation(normalizedSource);
     GFile *dst = gFileForLocation(normalizedTarget);
     GError *gErr = nullptr;
@@ -514,6 +539,7 @@ bool moveLocationSync(const QString &sourcePath, const QString &targetPath, QStr
     g_object_unref(src);
     g_object_unref(dst);
     return ok;
+#endif
 }
 
 bool makeDirectorySync(const QString &path, QString *error = nullptr)
@@ -526,6 +552,12 @@ bool makeDirectorySync(const QString &path, QString *error = nullptr)
         return ok;
     }
 
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(normalized)
+    if (error)
+        *error = QStringLiteral("Remote mkdir is not supported on Android");
+    return false;
+#else
     GFile *file = gFileForLocation(normalized);
     GError *gErr = nullptr;
     const bool ok = g_file_make_directory_with_parents(file, nullptr, &gErr);
@@ -535,6 +567,7 @@ bool makeDirectorySync(const QString &path, QString *error = nullptr)
     if (gErr) g_error_free(gErr);
     g_object_unref(file);
     return ok || alreadyExists;
+#endif
 }
 
 bool createEmptyFileSync(const QString &path, QString *error = nullptr)
@@ -552,6 +585,12 @@ bool createEmptyFileSync(const QString &path, QString *error = nullptr)
         return ok;
     }
 
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(normalized)
+    if (error)
+        *error = QStringLiteral("Remote file creation is not supported on Android");
+    return false;
+#else
     GFile *file = gFileForLocation(normalized);
     GError *gErr = nullptr;
     GFileOutputStream *stream = g_file_create(file, G_FILE_CREATE_NONE, nullptr, &gErr);
@@ -567,14 +606,21 @@ bool createEmptyFileSync(const QString &path, QString *error = nullptr)
     }
     g_object_unref(file);
     return true;
+#endif
 }
 
 bool pathExistsSync(const QString &path)
 {
     const QString normalized = normalizeLocation(path);
+#ifdef Q_OS_ANDROID
+    Q_UNUSED(normalized)
+    // No remote/URI locations on Android; local paths only.
+    return QFileInfo::exists(normalized);
+#else
     if (isUriPath(normalized))
         return gioPathExists(normalized);
     return QFileInfo::exists(normalized);
+#endif
 }
 
 QVariantList buildBreadcrumbs(const QString &path)
@@ -1196,6 +1242,100 @@ int FileOperations::moveResolvedItems(const QVariantList &operations)
     return transferResolvedItems(operations, true);
 }
 
+#ifdef Q_OS_ANDROID
+// Android has no g_file_trash() (that is GLib). Instead, move the item into
+// the standard XDG trash directory and write the matching .trashinfo sidecar,
+// so the pure-Qt XdgTrash reader (Trash view, restore, empty) keeps working
+// exactly as on desktop.
+//
+// ~/.local/share is app-internal storage while /storage/emulated/0 is shared,
+// i.e. a *different* filesystem, so rename() across them fails with EXDEV. In
+// that case fall back to a recursive copy followed by deleting the source.
+
+namespace {
+
+// Recursive copy preserving directory structure. Returns false on first error.
+bool copyTreeAndroid(const QString &src, const QString &dst)
+{
+    const QFileInfo srcInfo(src);
+    if (srcInfo.isDir()) {
+        QDir dstDir(dst);
+        if (!dstDir.exists() && !QDir().mkpath(dst))
+            return false;
+        const QStringList entries = QDir(src).entryList(
+            QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
+        for (const QString &entry : entries) {
+            if (!copyTreeAndroid(src + QLatin1Char('/') + entry,
+                                 dst + QLatin1Char('/') + entry))
+                return false;
+        }
+        return true;
+    }
+    return QFile::copy(src, dst);
+}
+
+bool moveIntoTrash(const QString &path, QString *error)
+{
+    const QString trashRoot = XdgTrash::homeRoot();
+    const QString filesDir = trashRoot + QStringLiteral("/files");
+    const QString infoDir  = trashRoot + QStringLiteral("/info");
+    if (!QDir().mkpath(filesDir) || !QDir().mkpath(infoDir)) {
+        if (error)
+            *error = QStringLiteral("Could not create the trash directory");
+        return false;
+    }
+
+    const QFileInfo src(path);
+    if (!src.exists()) {
+        if (error)
+            *error = QStringLiteral("Could not find %1").arg(src.fileName());
+        return false;
+    }
+
+    // Pick a non-colliding name inside files/, mirroring g_file_trash().
+    const QString baseName = src.fileName();
+    QString name = baseName;
+    int counter = 0;
+    while (QFileInfo::exists(filesDir + QLatin1Char('/') + name)) {
+        ++counter;
+        name = baseName + QLatin1Char('.') + QString::number(counter);
+    }
+    const QString destPath = filesDir + QLatin1Char('/') + name;
+
+    // Fast path: same filesystem, a single rename. Cross-filesystem (EXDEV)
+    // falls back to copy-then-delete.
+    if (!QFile::rename(path, destPath)) {
+        if (!copyTreeAndroid(path, destPath)) {
+            QDir(destPath).removeRecursively(); // best-effort cleanup
+            QFile::remove(destPath);
+            if (error)
+                *error = QStringLiteral("Could not move %1 into the trash").arg(baseName);
+            return false;
+        }
+        // Remove the original now that the copy is in place.
+        if (src.isDir())
+            QDir(path).removeRecursively();
+        else
+            QFile::remove(path);
+    }
+
+    // Write the .trashinfo sidecar so restore knows the original location.
+    QFile info(infoDir + QLatin1Char('/') + name + QStringLiteral(".trashinfo"));
+    if (info.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&info);
+        out << "[Trash Info]\n";
+        out << "Path=" << QUrl::toPercentEncoding(path) << "\n";
+        out << "DeletionDate="
+            << QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-ddTHH:mm:ss"))
+            << "\n";
+        info.close();
+    }
+    return true;
+}
+
+} // namespace
+#endif
+
 int FileOperations::trashFiles(const QStringList &paths)
 {
     if (m_purgeCallback) {
@@ -1232,6 +1372,15 @@ int FileOperations::trashFiles(const QStringList &paths)
                     continue;
                 }
 
+#ifdef Q_OS_ANDROID
+                // No GLib on Android: use the Qt XDG-trash implementation so the
+                // Trash view and restore keep working.
+                {
+                    QString err;
+                    if (!moveIntoTrash(normalized, &err) && !err.isEmpty())
+                        lastError = err;
+                }
+#else
                 GFile *file = gFileForLocation(normalized);
                 GError *gErr = nullptr;
                 if (!g_file_trash(file, nullptr, &gErr)) {
@@ -1241,6 +1390,7 @@ int FileOperations::trashFiles(const QStringList &paths)
                     }
                 }
                 g_object_unref(file);
+#endif
             }
             return lastError;
         });
@@ -1422,13 +1572,16 @@ int FileOperations::deleteFiles(const QStringList &paths)
 
                 report(i, total, locationFileName(normalized));
 
+#ifndef Q_OS_ANDROID
                 if (isUriPath(normalized)) {
                     GFile *file = gFileForLocation(normalized);
                     QString err;
                     if (!deleteGFileRecursive(file, &err) && !err.isEmpty())
                         lastError = err;
                     g_object_unref(file);
-                } else {
+                } else
+#endif
+                {
                     QFileInfo info(normalized);
                     // A symlink to a directory must be unlinked, never
                     // descended: isDir() follows the link and

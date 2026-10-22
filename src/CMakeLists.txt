@@ -5,14 +5,12 @@ set(KASTRAFILES_SOURCES
     services/clipboardmanager.cpp
     services/fileoperations.cpp
     services/xdgtrash.cpp
-    services/giotransferworker.cpp
     services/draghelper.cpp
     models/tabmodel.cpp
     models/tablistmodel.cpp
     models/bookmarkmodel.cpp
     models/starredmodel.cpp
     models/filesystemmodel.cpp
-    models/devicemodel.cpp
     models/recentfilesmodel.cpp
     models/searchresultsmodel.cpp
     models/searchproxymodel.cpp
@@ -22,17 +20,39 @@ set(KASTRAFILES_SOURCES
     services/diskusageservice.cpp
     services/remoteaccessservice.cpp
     services/rcloneservice.cpp
-    services/runtimefeaturesservice.cpp
-    services/dependencychecker.cpp
     services/gitstatusservice.cpp
     services/sessionstate.cpp
     services/metadataextractor.cpp
-    services/cryptoengine.cpp
-    services/vaultdatabase.cpp
-    services/vaultservice.cpp
     providers/thumbnailprovider.cpp
     providers/pdfpreviewprovider.cpp
 )
+
+if(KASTRAFILES_MOBILE)
+    # Android (storage-browser edition): swap the desktop-only backends for
+    # interface-compatible stubs. GIO volume monitor + UDisks2 DBus
+    # (DeviceModel), the argon2+OpenSSL vault (VaultService), and the DBus /
+    # CLI-probing feature detectors (DependencyChecker, RuntimeFeaturesService)
+    # are all replaced by no-op implementations that keep the exact QML
+    # interface, so Main.qml and the components compile unchanged. The GIO
+    # transfer worker is replaced by a pure-Qt twin (qttransferworker).
+    list(APPEND KASTRAFILES_SOURCES
+        platform/android/devicemodel_android.cpp
+        platform/android/vaultservice_android.cpp
+        platform/android/dependencychecker_android.cpp
+        platform/android/runtimefeaturesservice_android.cpp
+        platform/android/qttransferworker.cpp
+    )
+else()
+    list(APPEND KASTRAFILES_SOURCES
+        services/giotransferworker.cpp
+        models/devicemodel.cpp
+        services/runtimefeaturesservice.cpp
+        services/dependencychecker.cpp
+        services/cryptoengine.cpp
+        services/vaultdatabase.cpp
+        services/vaultservice.cpp
+    )
+endif()
 
 qt_add_executable(kastrafiles ${KASTRAFILES_SOURCES})
 
@@ -246,21 +266,38 @@ set_target_properties(kastrafiles PROPERTIES
     QT_QML_IMPORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/qml"
 )
 
-target_link_libraries(kastrafiles PRIVATE
-    Qt6::Core
-    Qt6::Gui
-    Qt6::Qml
-    Qt6::Quick
-    Qt6::QuickControls2
-    Qt6::DBus
-    Qt6::Svg
-    Qt6::Network
-    Qt6::Concurrent
-    Qt6::Sql
-    OpenSSL::Crypto
-    PkgConfig::ARGON2
-    PkgConfig::GIO
-)
+if(KASTRAFILES_MOBILE)
+    # No GIO / OpenSSL / argon2 / DBus on Android. The desktop-only backends
+    # they powered are stubbed out (see the source-list swap above), so the
+    # app links against Qt only.
+    target_link_libraries(kastrafiles PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2
+        Qt6::Svg
+        Qt6::Network
+        Qt6::Concurrent
+        Qt6::Sql
+    )
+else()
+    target_link_libraries(kastrafiles PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Qml
+        Qt6::Quick
+        Qt6::QuickControls2
+        Qt6::DBus
+        Qt6::Svg
+        Qt6::Network
+        Qt6::Concurrent
+        Qt6::Sql
+        OpenSSL::Crypto
+        PkgConfig::ARGON2
+        PkgConfig::GIO
+    )
+endif()
 
 if(KF6WindowSystem_FOUND)
     target_link_libraries(kastrafiles PRIVATE KF6::WindowSystem)
@@ -271,26 +308,39 @@ target_include_directories(kastrafiles PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
-# Standalone uninstall cleanup tool
-qt_add_executable(kastrafiles-vault-destroy
-    vaultdestroy.cpp
-    services/cryptoengine.cpp
-    services/vaultdatabase.cpp
-)
-target_link_libraries(kastrafiles-vault-destroy PRIVATE
-    Qt6::Core
-    Qt6::Sql
-    OpenSSL::Crypto
-    PkgConfig::ARGON2
-)
-target_include_directories(kastrafiles-vault-destroy PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
+if(KASTRAFILES_MOBILE)
+    # fileoperations.cpp includes "services/giotransferworker.h". On Android we
+    # shadow that path with a pure-Qt twin of the same class (identical
+    # interface), by putting a directory containing a forwarding header
+    # *ahead* of the source tree on the include path. This keeps fileoperations
+    # unchanged while swapping GIO for Qt at compile time.
+    target_include_directories(kastrafiles BEFORE PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/include
+    )
+endif()
 
-# Standalone immutable attribute helper
-add_executable(kastrafiles-vault-helper
-    vaulthelper.cpp
-)
+if(NOT KASTRAFILES_MOBILE)
+    # Standalone uninstall cleanup tool (needs OpenSSL + argon2; desktop-only).
+    qt_add_executable(kastrafiles-vault-destroy
+        vaultdestroy.cpp
+        services/cryptoengine.cpp
+        services/vaultdatabase.cpp
+    )
+    target_link_libraries(kastrafiles-vault-destroy PRIVATE
+        Qt6::Core
+        Qt6::Sql
+        OpenSSL::Crypto
+        PkgConfig::ARGON2
+    )
+    target_include_directories(kastrafiles-vault-destroy PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+
+    # Standalone immutable attribute helper (uses chattr; desktop-only).
+    add_executable(kastrafiles-vault-helper
+        vaulthelper.cpp
+    )
+endif()
 
 set(KASTRAFILES_DATA_DIR "${CMAKE_SOURCE_DIR}" CACHE STRING "Runtime data directory for themes and QML")
 
@@ -306,15 +356,34 @@ if(KF6WindowSystem_FOUND)
     )
 endif()
 
-install(TARGETS kastrafiles kastrafiles-vault-destroy kastrafiles-vault-helper DESTINATION bin)
+# Android uses the qt_add_android_abi / androiddeployqt packaging flow and
+# ignores `install()`; only the desktop packages (deb/rpm/AppImage/Arch) use
+# these install() rules, so the desktop-only install set is skipped on Android.
+if(KASTRAFILES_MOBILE)
+    install(TARGETS kastrafiles DESTINATION bin)
+
+    # Android packaging: point androiddeployqt at our manifest (dist/android)
+    # and set the identity it substitutes into Qt's -- %%INSERT_*%% markers.
+    set_target_properties(kastrafiles PROPERTIES
+        QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_SOURCE_DIR}/dist/android"
+        QT_ANDROID_APP_NAME "Kastrafiles"
+        QT_ANDROID_APP_VERSION_NAME "${PROJECT_VERSION}"
+        QT_ANDROID_APP_VERSION_CODE 1
+        QT_ANDROID_MIN_SDK_VERSION 26
+        QT_ANDROID_TARGET_SDK_VERSION 34
+        QT_ANDROID_FEATURES "android.hardware.faketouch"
+    )
+else()
+    install(TARGETS kastrafiles kastrafiles-vault-destroy kastrafiles-vault-helper DESTINATION bin)
+    install(FILES "${CMAKE_SOURCE_DIR}/dist/kastrafiles-cleanup.hook"
+        DESTINATION share/libalpm/hooks)
+    install(FILES "${CMAKE_SOURCE_DIR}/dist/org.kastrafiles.vault.policy"
+        DESTINATION share/polkit-1/actions)
+endif()
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.desktop"
     DESTINATION share/applications)
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.svg"
     DESTINATION share/icons/hicolor/scalable/apps)
 install(FILES "${CMAKE_SOURCE_DIR}/dist/io.github.tejaskhanna989.Kastrafiles.metainfo.xml"
     DESTINATION share/metainfo)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/kastrafiles-cleanup.hook"
-    DESTINATION share/libalpm/hooks)
-install(FILES "${CMAKE_SOURCE_DIR}/dist/org.kastrafiles.vault.policy"
-    DESTINATION share/polkit-1/actions)
 
