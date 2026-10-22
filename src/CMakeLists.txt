@@ -41,6 +41,17 @@ if(KASTRAFILES_MOBILE)
         platform/android/dependencychecker_android.cpp
         platform/android/runtimefeaturesservice_android.cpp
         platform/android/qttransferworker.cpp
+        # AUTOMOC only moc's a header when a same-base-name source includes it
+        # (desktop relies on vaultservice.cpp -> vaultservice.h). Our stubs carry
+        # an _android suffix, so the base names no longer match and moc would be
+        # skipped — leaving staticMetaObject, the vtables and the QML-invoked
+        # signals undefined at link time. Listing the headers here forces them to
+        # be moc'd. (qttransferworker.h needs no entry: qttransferworker.cpp
+        # already matches its base name.)
+        models/devicemodel.h
+        services/vaultservice.h
+        services/dependencychecker.h
+        services/runtimefeaturesservice.h
     )
 else()
     list(APPEND KASTRAFILES_SOURCES
