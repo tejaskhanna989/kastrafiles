@@ -451,40 +451,42 @@ jobs:
           echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
           test -d "$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}"
 
-      # Pin the compile SDK to android-34. androiddeployqt picks the HIGHEST
-      # platform under $ANDROID_HOME/platforms (detectLatestAndroidPlatform),
-      # and the ubuntu-24.04 runner preinstalls a newer one (android-36-ext19).
-      # Qt 6.7.3's bundled build-tools 34.0.0 aapt2 is too old to parse the
-      # android-36 resource table (aapt2 error: RES_TABLE_TYPE_TYPE entry
-      # offsets overlap). QT_ANDROID_COMPILE_SDK_VERSION would pin this
-      # properly but needs Qt 6.9+, so drop any platform newer than 34 instead
-      # — leaving android-34 as the newest. Qt 6.7.3's Java compile already
-      # defaults to android-34, so nothing else depends on the 36 platform.
+      # Pin the compile SDK to exactly android-34. androiddeployqt picks the
+      # HIGHEST platform under $ANDROID_HOME/platforms (detectLatestAndroidPlatform),
+      # and the ubuntu-24.04 runner preinstalls several, including android-36-ext19
+      # (and variants like android-34-ext12 that natural-sort above plain
+      # android-34). Qt 6.7.3's bundled build-tools 34.0.0 aapt2 is too old to
+      # parse the android-36 resource table (aapt2 error: RES_TABLE_TYPE_TYPE
+      # entry offsets overlap), and relying on "-ext" variants is fragile.
+      # QT_ANDROID_COMPILE_SDK_VERSION would pin this properly but needs Qt 6.9+,
+      # so instead keep ONLY the exact android-34 we installed via sdkmanager and
+      # remove every other platform dir. Qt 6.7.3's Java compile already defaults
+      # to android-34, so nothing else depends on the removed platforms.
       - name: Pin compile SDK to android-34
         run: |
           set -euo pipefail
+          KEEP="android-34"
           removed=0
           for dir in "$ANDROID_HOME"/platforms/android-*; do
             [ -d "$dir" ] || continue
             base=$(basename "$dir")                       # e.g. android-36-ext19
-            num=${base#android-}
-            num=${num%%[^0-9]*}                           # leading digits only
-            [ -n "$num" ] || continue
-            if [ "$num" -gt 34 ]; then
-              echo "Removing preinstalled platform $base (newer than android-34)"
+            if [ "$base" != "$KEEP" ]; then
+              echo "Removing platform $base (keeping only $KEEP)"
               rm -rf "$dir"
               removed=$((removed + 1))
             fi
           done
           echo "Platforms now available:"
           ls -1 "$ANDROID_HOME/platforms"
-          # Sanity: android-34 must be the newest one left.
-          newest=$(ls -1 "$ANDROID_HOME/platforms" | sort -V | tail -n 1)
-          if [ "$newest" != "android-34" ]; then
-            echo "::error::Expected android-34 to be newest platform, found $newest"
+          # Sanity: android-34 must be the only android-* platform left, and it
+          # must contain the android.jar aapt2/compile will load.
+          remaining=$(ls -1 "$ANDROID_HOME/platforms" | grep -c '^android-' || true)
+          if [ "$remaining" != "1" ] || [ ! -f "$ANDROID_HOME/platforms/$KEEP/android.jar" ]; then
+            echo "::error::Expected only $KEEP with an android.jar, found $remaining android-* platform(s)"
+            ls -1 "$ANDROID_HOME/platforms" || true
             exit 1
           fi
-          echo "Pinned compile SDK to android-34 (removed $removed newer platform(s))."
+          echo "Pinned compile SDK to $KEEP (removed $removed other platform(s))."
 
       - name: Install build dependencies
         run: |
